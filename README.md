@@ -266,7 +266,7 @@ The remote button set is selected automatically by matching the **input name** (
 |---|---|
 | `cable` | xfinity, comcast, cable, cox, spectrum, directv, dish |
 | `streaming` | appletv, apple tv, firetv, fire tv, fire stick, roku, chromecast, shield, streaming, stream |
-| `dvd` | blu, bluray, blu-ray, dvd, oppo, disc, player |
+| `dvd` | blu, bluray, blu-ray, dvd, oppo, disc, player, tivo, dvr, pvr, recorder, hdhomerun |
 | `signage` | brightsign, scala, xibo, signage, display, player |
 | `generic` | *(anything else)* |
 

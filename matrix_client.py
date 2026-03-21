@@ -591,7 +591,8 @@ class MatrixClient:
         (["xfinity", "comcast", "cable", "cox", "spectrum", "directv", "dish"], "cable"),
         (["appletv", "apple tv", "firetv", "fire tv", "fire stick",
           "roku", "chromecast", "shield", "streaming", "stream"], "streaming"),
-        (["blu", "bluray", "blu-ray", "dvd", "oppo", "disc", "player"], "dvd"),
+        (["blu", "bluray", "blu-ray", "dvd", "oppo", "disc", "player",
+          "tivo", "dvr", "pvr", "recorder", "hdhomerun"], "dvd"),
         (["brightsign", "scala", "xibo", "signage", "display", "player"], "signage"),
         (["music", "audio", "stereo", "receiver", "amp", "speaker"], "signage"),
     ]
