@@ -190,7 +190,7 @@ class MatrixClient:
             except Exception:
                 logger.exception("on_state_change callback error")
 
-    def force_names_refresh(self):
+    def force_config_refresh(self):
         """Immediately re-fetch names from the device in a background thread."""
         def _do():
             with self._lock:

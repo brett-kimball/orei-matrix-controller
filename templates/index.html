@@ -410,7 +410,7 @@
 </header>
 
 <div class="refresh-btn-wrap">
-  <button class="btn-secondary" onclick="refreshNames()">↺ Refresh Config</button>
+  <button class="btn-secondary" onclick="refreshConfig()">↺ Refresh Config</button>
 </div>
 
 <div class="grid" id="output-grid">
@@ -656,9 +656,9 @@
     }
   }
 
-  // ── Refresh names ──────────────────────────────────────────────────────────
-  async function refreshNames() {
-    await fetch('/api/refresh-names', {method: 'POST'});
+  // ── Refresh config ─────────────────────────────────────────────────────────
+  async function refreshConfig() {
+    await fetch('/api/refresh-config', {method: 'POST'});
     showToast('Config refreshing…', 'ok');
   }
 
@@ -887,7 +887,7 @@
       pulling = false;
       if (triggered) {
         ind.classList.add('ptr-spinning');
-        await refreshNames();
+        await refreshConfig();
         setTimeout(() => {
           ind.classList.remove('ptr-spinning', 'ptr-visible');
           ind.style.transform = '';

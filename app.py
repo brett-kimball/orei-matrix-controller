@@ -124,8 +124,8 @@ def api_power():
     return jsonify({"error": "Power command failed"}), 502
 
 
-@app.route("/api/refresh-names", methods=["POST"])
-def api_refresh_names():
+@app.route("/api/refresh-config", methods=["POST"])
+def api_refresh_config():
     global config
     try:
         fresh_config = load_config()
@@ -133,7 +133,7 @@ def api_refresh_names():
         matrix.reload_config(fresh_config)
     except Exception:
         logger.exception("Failed to reload config.json")
-    matrix.force_names_refresh()
+    matrix.force_config_refresh()
     return jsonify({"ok": True, "message": "Config reloading now"})
 
 

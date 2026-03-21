@@ -253,7 +253,7 @@ matrix/
 | `POST` | `/api/power` | Power control: `{"state": 1}` = on, `{"state": 0}` = standby |
 | `POST` | `/api/cec` | CEC power to one output: `{"output": N, "connection_type": "hdmi"\|"hdbt", "state": 0\|1}` |
 | `POST` | `/api/cec-key` | CEC keypress to an input device: `{"input": N, "key": index}` (key 1–32, see below) |
-| `POST` | `/api/refresh-names` | Reload `config.json` (title, schedule, polling intervals) and re-fetch input/output names from the device |
+| `POST` | `/api/refresh-config` | Reload `config.json` (title, schedule, polling intervals) and re-fetch input/output names from the device |
 
 ---
 
