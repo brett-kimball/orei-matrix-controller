@@ -1,0 +1,13 @@
+/var/log/matrix-switch/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 matrix matrix
+    sharedscripts
+    postrotate
+        systemctl kill --signal=USR1 matrix-switch 2>/dev/null || true
+    endscript
+}

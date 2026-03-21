@@ -99,7 +99,28 @@ sudo systemctl status matrix-switch
 
 ---
 
-## 8. Access the web interface
+## 8. Configure log rotation
+
+Gunicorn writes access and error logs to `/var/log/matrix-switch/`. Install the
+provided logrotate config to rotate them daily, keeping 14 days of compressed history:
+
+```bash
+sudo cp /opt/matrix-switch/matrix-switch.logrotate /etc/logrotate.d/matrix-switch
+```
+
+You can test it immediately (dry run) with:
+
+```bash
+sudo logrotate --debug /etc/logrotate.d/matrix-switch
+```
+
+> **Note:** Python application logs (startup messages, schedule actions, errors) go to
+> the systemd journal via `journalctl` and are managed automatically by journald —
+> no additional configuration is needed for those.
+
+---
+
+## 9. Access the web interface
 
 Open a browser and navigate to:
 
@@ -109,7 +130,7 @@ http://<pi-hostname-or-ip>:5000
 
 ---
 
-## 9. Name your inputs and outputs on the matrix switch
+## 10. Name your inputs and outputs on the matrix switch
 
 **The app hides any port that still has its factory-default name** (e.g. `input1`, `hdmi output3`). Until you rename ports on the matrix device itself, the web UI will show an empty grid.
 
