@@ -145,8 +145,8 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
       "time": "02:30",             // HH:MM (24-hour, local time)
       "days": "all",               // "all" or an array like ["mon","tue","wed","thu","fri"]
       "action": "off",             // "on", "off", "matrix_on", "matrix_standby", "switch", "source_on", or "source_off"
-      "outputs": "all",            // "all" or an array of 1-based output numbers, e.g. [1,3,5]
-      "source_is": "any"           // "any" or an array of 1-based input numbers, e.g. [2,3]
+      "outputs": "all",            // "all" or an array of output numbers, e.g. [1,3,5]
+      "source_is": "any"           // "any" or an array of input numbers, e.g. [2,3]
     },
     {
       "time": "07:00",
@@ -159,14 +159,14 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
       "time": "08:00",
       "days": ["mon","tue","wed","thu","fri"],
       "action": "switch",         // route outputs to a different input
-      "outputs": [1, 2],           // "all" or a list of 1-based output numbers
-      "source": 3                  // 1-based input number to route to
+      "outputs": [1, 2],           // "all" or a list of output numbers
+      "source": 3                  // input number to route to
     },
     {
       "time": "02:30",
       "days": "all",
       "action": "source_off",     // CEC standby to source devices on inputs
-      "inputs": "all"              // "all" or a list of 1-based input numbers
+      "inputs": "all"              // "all" or a list of input numbers
     },
     {
       "time": "07:00",
@@ -188,8 +188,8 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
 * Each event fires **at most once per minute**: the 30-second check interval will never double-fire the same event.
 * Day abbreviations match Python's `datetime.strftime("%a").lower()`: `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`.
 * **`source_is`** is optional (defaults to `"any"`). When set to a list of input numbers, the CEC command is only sent to outputs currently routed to one of those inputs — useful for selectively powering on signage players while leaving cable box displays alone.
-* **`source`** (for `"switch"` action only) is a 1-based input number. `"outputs"` follows the same `"all"`-or-list convention as CEC actions.
-* **`inputs`** (for `"source_on"` / `"source_off"` only) is `"all"` or a list of 1-based input numbers. Only inputs with a custom name (i.e. a known source device) receive the command.
+* **`source`** (for `"switch"` action only) is the input number to route to. `"outputs"` follows the same `"all"`-or-list convention as CEC actions.
+* **`inputs`** (for `"source_on"` / `"source_off"` only) is `"all"` or a list of input numbers. Only inputs with a custom name (i.e. a known source device) receive the command.
 
 ---
 
