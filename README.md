@@ -78,7 +78,7 @@ If both entries for a slot have non-default names (misconfiguration), the HDMI n
 
 **Any input or output whose name matches the default patterns is hidden in the web UI.** This keeps the display clean when only a subset of ports are in use.
 
-To make a port appear in the UI, give its correct-side output entry a custom name using the matrix switch's own web interface (navigate to the device's IP address in a browser, go to the output settings, and rename either the HDMI or HDBaseT entry — not both). The custom names are fetched from the device and refreshed every hour (configurable via `names_interval_seconds`). Use the **↺ Refresh Names** button in the UI to force an immediate re-fetch.
+To make a port appear in the UI, give its correct-side output entry a custom name using the matrix switch's own web interface (navigate to the device's IP address in a browser, go to the output settings, and rename either the HDMI or HDBaseT entry — not both). The custom names are fetched from the device and refreshed every hour (configurable via `names_interval_seconds`). Use the **↺ Refresh Config** button in the UI to force an immediate re-fetch.
 
 The patterns detected as defaults are (case-insensitive):
 - Input: matches `input` followed by optional whitespace and a number
