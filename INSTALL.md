@@ -1,0 +1,201 @@
+# OREI Matrix Switch — Installation Guide
+
+Deployment target: Raspberry Pi 5, Debian Trixie, systemd.
+
+---
+
+## 1. Create the service user
+
+```bash
+sudo useradd --system --shell /usr/sbin/nologin --create-home --home-dir /opt/matrix-switch matrix
+```
+
+---
+
+## 2. Copy files to the deployment directory
+
+If you cloned the repo on another machine, copy it across (adjust source path as needed):
+
+```bash
+sudo rsync -av --exclude='.venv' --exclude='__pycache__' \
+    /home/brett/Projects/matrix/ /opt/matrix-switch/
+```
+
+Or clone directly on the Pi (replace with your actual repo URL if using git):
+
+```bash
+sudo git clone <repo-url> /opt/matrix-switch
+```
+
+---
+
+## 3. Create the Python virtual environment
+
+```bash
+cd /opt/matrix-switch
+sudo python3 -m venv .venv
+sudo .venv/bin/pip install -r requirements.txt
+```
+
+---
+
+## 4. Configure the application
+
+```bash
+sudo cp /opt/matrix-switch/config.template.json /opt/matrix-switch/config.json
+sudo nano /opt/matrix-switch/config.json
+```
+
+Edit the values to match your environment:
+
+| Field | Description |
+|---|---|
+| `matrix.host` | IP address of the matrix switch |
+| `matrix.http_port` | HTTP port (default: `80`) |
+| `matrix.http_user` | HTTP login username (default: `Admin`) |
+| `matrix.http_password` | HTTP login password (default: `admin`) |
+| `matrix.telnet_port` | Telnet push port (default: `23`) |
+| `matrix.num_inputs` | Number of inputs (default: `8`) |
+| `matrix.num_outputs` | Number of outputs (default: `8`) |
+| `polling.status_interval_seconds` | How often to poll for routing status (default: `10`) |
+| `polling.names_interval_seconds` | How often to re-fetch input/output names (default: `3600`) |
+| `flask.host` | Bind address for the web UI (default: `0.0.0.0`) |
+| `flask.port` | TCP port for the web UI (default: `5000`) |
+| `flask.debug` | Set to `false` in production |
+
+---
+
+## 5. Set correct ownership
+
+```bash
+sudo chown -R matrix:matrix /opt/matrix-switch
+```
+
+---
+
+## 6. Create the log directory
+
+```bash
+sudo mkdir -p /var/log/matrix-switch
+sudo chown matrix:matrix /var/log/matrix-switch
+```
+
+---
+
+## 7. Install and enable the systemd service
+
+```bash
+sudo cp /opt/matrix-switch/matrix-switch.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable matrix-switch
+sudo systemctl start matrix-switch
+```
+
+Check that it started successfully:
+
+```bash
+sudo systemctl status matrix-switch
+```
+
+---
+
+## 8. Access the web interface
+
+Open a browser and navigate to:
+
+```
+http://<pi-hostname-or-ip>:5000
+```
+
+---
+
+## Useful commands
+
+| Purpose | Command |
+|---|---|
+| View live logs | `sudo journalctl -fu matrix-switch` |
+| View access log | `sudo tail -f /var/log/matrix-switch/access.log` |
+| Restart the service | `sudo systemctl restart matrix-switch` |
+| Stop the service | `sudo systemctl stop matrix-switch` |
+| Edit config | `sudo nano /opt/matrix-switch/config.json && sudo systemctl restart matrix-switch` |
+
+---
+
+## Customising the Logo and Icons
+
+The app displays `static/logo.png` in the page header and uses it as the source for
+the favicon and home-screen icons. The default `logo.png` shipped with the repo is a
+generic matrix-switch graphic. Replace it with your own image to personalise the app.
+
+### Requirements
+- A square PNG is ideal. Non-square images are padded to a square with the app's dark
+  background colour (`#0f1117`) before being resized.
+- Recommended source size: at least 512×512 px.
+
+### Steps
+
+1. Copy your image to `static/logo.png`.
+
+2. Install Pillow if not already present:
+   ```bash
+   .venv/bin/pip install pillow
+   ```
+
+3. Regenerate all icon sizes:
+   ```bash
+   .venv/bin/python3 - << 'EOF'
+   from PIL import Image
+   import os
+   img = Image.open("static/logo.png").convert("RGBA")
+   w, h = img.size
+   size = max(w, h)
+   bg = Image.new("RGBA", (size, size), (15, 17, 23, 255))
+   bg.paste(img, ((size - w) // 2, (size - h) // 2), img)
+   bg = bg.convert("RGB")
+   os.makedirs("static/icons", exist_ok=True)
+   for s, path in [
+       (32,  "static/favicon.png"),
+       (180, "static/icons/apple-touch-icon.png"),
+       (192, "static/icons/icon-192.png"),
+       (512, "static/icons/icon-512.png"),
+   ]:
+       bg.resize((s, s), Image.LANCZOS).save(path, "PNG", optimize=True)
+       print(f"  {path}")
+   EOF
+   ```
+
+4. Restart the service to serve the updated files:
+   ```bash
+   sudo systemctl restart matrix-switch
+   ```
+
+The generated icon files (`static/favicon.png`, `static/icons/`) are listed in
+`.gitignore` and are not tracked by git — regenerate them on each deployment.
+
+---
+
+## Updating
+
+```bash
+# Copy new files
+sudo rsync -av --exclude='.venv' --exclude='__pycache__' --exclude='config.json' \
+    /home/brett/Projects/matrix/ /opt/matrix-switch/
+
+# Fix ownership and restart
+sudo chown -R matrix:matrix /opt/matrix-switch
+sudo systemctl restart matrix-switch
+```
+
+---
+
+## Uninstall
+
+```bash
+sudo systemctl stop matrix-switch
+sudo systemctl disable matrix-switch
+sudo rm /etc/systemd/system/matrix-switch.service
+sudo systemctl daemon-reload
+sudo rm -rf /opt/matrix-switch
+sudo rm -rf /var/log/matrix-switch
+sudo userdel matrix
+```

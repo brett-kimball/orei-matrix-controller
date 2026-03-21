@@ -1,0 +1,22 @@
+[Unit]
+Description=OREI Matrix Switch Web Interface
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=matrix
+Group=matrix
+WorkingDirectory=/opt/matrix-switch
+ExecStart=/opt/matrix-switch/.venv/bin/gunicorn app:app \
+    --bind 0.0.0.0:5000 \
+    --workers 4 \
+    --timeout 120 \
+    --access-logfile /var/log/matrix-switch/access.log \
+    --error-logfile /var/log/matrix-switch/error.log
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

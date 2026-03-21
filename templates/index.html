@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="{{ title }}">
+  <meta name="theme-color" content="#0f1117">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/static/fa/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3348;
+      --accent: #4f8ef7;
+      --accent-hover: #6aa0ff;
+      --danger: #e05c5c;
+      --danger-hover: #f07070;
+      --success: #4caf7d;
+      --warning: #f5a623;
+      --text: #e8eaf2;
+      --text-muted: #7b82a0;
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+      padding: 24px 16px;
+      overscroll-behavior-y: contain;
+    }
+
+    #ptr-indicator {
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%) translateY(-48px);
+      width: 36px; height: 36px;
+      background: var(--card);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
+      transition: transform .15s ease, opacity .15s ease;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    #ptr-indicator.ptr-visible { opacity: 1; }
+    #ptr-indicator.ptr-spinning svg { animation: ptr-spin .8s linear infinite; }
+    @keyframes ptr-spin { to { transform: rotate(360deg); } }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .header-logo {
+      height: 52px;
+      width: auto;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-left h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .header-left .subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Status badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .badge.on  { background: rgba(76,175,125,0.15); color: var(--success); }
+    .badge.on  .badge-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .badge.standby { background: rgba(160,160,175,0.12); color: #888; }
+    .badge.standby .badge-dot { background: #888; }
+    .badge.off { background: rgba(224,92,92,0.15);  color: var(--danger);  }
+    .badge.off .badge-dot { background: var(--danger); }
+    .badge.app-ok { background: rgba(76,175,125,0.10); color: var(--success); }
+    .badge.app-ok .badge-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .badge.connecting { background: rgba(245,166,35,0.15); color: var(--warning); }
+    .badge.connecting .badge-dot { background: var(--warning); animation: pulse 1.2s infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Buttons */
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 9px 18px;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-power-off  { background: var(--danger);  color: #fff; }
+    .btn-power-off:hover:not(:disabled)  { background: var(--danger-hover); }
+    .btn-power-on   { background: var(--success); color: #fff; }
+    .btn-power-on:hover:not(:disabled)   { background: #5dc990; }
+    .btn-secondary  { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled)  { color: var(--text); border-color: var(--accent); }
+
+    .btn-cec {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      transition: background 0.15s, opacity 0.15s;
+      letter-spacing: 0.03em;
+    }
+    .btn-cec:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-cec.cec-on  { background: var(--success); color: #fff; }
+    .btn-cec.cec-on:hover:not(:disabled)  { background: #5dc990; }
+    .btn-cec.cec-off { background: var(--danger);  color: #fff; }
+    .btn-cec.cec-off:hover:not(:disabled) { background: var(--danger-hover); }
+    .cec-btns { display: flex; gap: 6px; align-items: center; }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* Output card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--accent); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .card-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .output-num {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .output-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .signal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .signal-dot.active { background: var(--success); box-shadow: 0 0 6px var(--success); }
+
+    /* Select */
+    .source-wrap {
+      position: relative;
+    }
+    select {
+      width: 100%;
+      padding: 10px 36px 10px 12px;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    select:focus { outline: none; border-color: var(--accent); }
+    select:disabled { opacity: 0.4; cursor: not-allowed; }
+    .select-arrow {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    /* Switching animation */
+    .card.switching { border-color: var(--warning); }
+    .card.switching select { opacity: 0.5; pointer-events: none; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      z-index: 9999;
+      max-width: 320px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { border-color: var(--danger); color: var(--danger); }
+    #toast.ok    { border-color: var(--success); color: var(--success); }
+
+    /* Standby overlay */
+    .standby-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,17,23,0.88);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+    .standby-overlay.visible { display: flex; }
+    .standby-icon { font-size: 3rem; }
+
+    .refresh-btn-wrap {
+      text-align: right;
+      margin-bottom: 12px;
+    }
+
+    /* Remote button on card */
+    .btn-cec.cec-remote {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 7px;
+      line-height: 1;
+    }
+    .btn-cec.cec-remote:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+
+    /* Remote overlay & modal */
+    .remote-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .remote-overlay.visible { display: flex; }
+    .remote-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      width: 100%;
+      max-width: 300px;
+    }
+    .remote-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .remote-title    { font-size: 0.95rem; font-weight: 700; }
+    .remote-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+    .remote-close {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+    .remote-close:hover { color: var(--text); border-color: var(--accent); }
+    .remote-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .rmt-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rmt-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--border); }
+    .rmt-btn:focus { outline: none; }
+    .rmt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .rmt-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .rmt-btn.rmt-empty { visibility: hidden; pointer-events: none; min-height: 8px; }
+    .rmt-btn.rmt-power-on  { background: rgba(76,175,125,0.15); border-color: var(--success); color: var(--success); }
+    .rmt-btn.rmt-power-on:hover:not(:disabled)  { background: rgba(76,175,125,0.3); }
+    .rmt-btn.rmt-power-off { background: rgba(224,92,92,0.15);  border-color: var(--danger);  color: var(--danger);  }
+    .rmt-btn.rmt-power-off:hover:not(:disabled) { background: rgba(224,92,92,0.3); }
+    .rmt-btn.rmt-ok { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; }
+    .rmt-ch    { font-size: 0.72rem; font-weight: 700; }
+    .rmt-digit { font-size: 1.1rem; font-weight: 600; }
+    .channel-section { display: none; margin-top: 12px; }
+    .channel-section.visible { display: block; }
+    .channel-divider { border-top: 1px solid var(--border); margin-bottom: 12px; }
+
+    @media (max-width: 480px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .grid { grid-template-columns: 1fr; }
+      .remote-overlay { padding: 8px; align-items: flex-end; }
+      .remote-modal   { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <img src="/static/logo.png" alt="Logo" class="header-logo">
+    <div>
+      <h1>{{ title }}</h1>
+      <div class="subtitle" id="model-label">{{ state.model }}</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge connecting" id="app-badge">
+      <span class="badge-dot"></span>
+      <span id="app-label">Connecting…</span>
+    </div>
+    <div class="badge off" id="device-badge">
+      <span class="badge-dot"></span>
+      <span id="device-label">Offline</span>
+    </div>
+    <button id="btn-power" class="btn-power-on" disabled>On</button>
+  </div>
+</header>
+
+<div class="refresh-btn-wrap">
+  <button class="btn-secondary" onclick="refreshNames()">↺ Refresh Config</button>
+</div>
+
+<div class="grid" id="output-grid">
+  {% for out in state.outputs %}
+  <div class="card" id="card-{{ out.number }}" data-output="{{ out.number }}"{% if out.is_default %} style="display:none"{% endif %}>
+    <div class="card-header">
+      <div>
+        <div class="output-num">Output {{ out.number }}</div>
+        <div class="output-name" id="outname-{{ out.number }}">{{ out.name }}</div>
+      </div>
+      <div class="card-header-right">
+        {% if not out.is_default %}
+        <div class="cec-btns" id="cec-btns-{{ out.number }}" style="display:none">
+          <button class="btn-cec cec-remote" id="rmt-btn-{{ out.number }}" onclick="openRemote({{ out.number }})" title="Input Remote" style="display:none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="15" viewBox="0 0 10 15" fill="currentColor">
+              <rect x="1" y="0.5" width="8" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
+              <circle cx="5" cy="3.5" r="1.2"/>
+              <line x1="2.5" y1="6" x2="7.5" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              <circle cx="3" cy="9" r="0.75"/><circle cx="5" cy="9" r="0.75"/><circle cx="7" cy="9" r="0.75"/>
+              <circle cx="3" cy="11.5" r="0.75"/><circle cx="5" cy="11.5" r="0.75"/><circle cx="7" cy="11.5" r="0.75"/>
+            </svg>
+          </button>
+          <button class="btn-cec cec-on"
+            onclick="cecPower({{ out.number }}, true, this)"
+            title="CEC power on">⏻ On</button>
+          <button class="btn-cec cec-off"
+            onclick="cecPower({{ out.number }}, false, this)"
+            title="CEC standby">⏻ Off</button>
+        </div>
+        {% endif %}
+        <div class="signal-dot {% if out.connected %}active{% endif %}" id="sig-{{ out.number }}" title="{% if out.connected %}{{ out.connection_type | upper }} signal present{% else %}No signal{% endif %}"></div>
+      </div>
+    </div>
+    <div class="source-wrap">
+      <select id="sel-{{ out.number }}" onchange="switchSource({{ out.number }}, this.value)" {% if not state.power %}disabled{% endif %}>
+        {% for inp in state.inputs %}
+        <option value="{{ inp.number }}" {% if out.source == inp.number %}selected{% endif %}{% if inp.is_default %} hidden{% endif %}>
+          {{ inp.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <span class="select-arrow">▼</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="standby-overlay" id="standby-overlay">
+  <div class="standby-icon" id="standby-icon">⏻</div>
+  <div id="standby-text">Device is in standby</div>
+  <button class="btn-power-on" id="standby-power-btn" onclick="setPower(true)">Power On</button>
+</div>
+
+<div class="remote-overlay" id="remote-overlay" onclick="if(event.target===this)closeRemote()">
+  <div class="remote-modal">
+    <div class="remote-header">
+      <div>
+        <div id="remote-title" class="remote-title">Remote</div>
+        <div id="remote-subtitle" class="remote-subtitle"></div>
+      </div>
+      <button class="remote-close" onclick="closeRemote()">✕</button>
+    </div>
+    <div class="remote-grid" id="remote-grid"></div>
+    <div class="channel-section" id="channel-section"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ── SSE connection ─────────────────────────────────────────────────────────
+  let evtSource = null;
+
+  function connectSSE() {
+    evtSource = new EventSource('/api/events');
+    evtSource.onmessage = (e) => { setAppBadge(true); applyState(JSON.parse(e.data)); };
+    evtSource.onerror = () => {
+      setAppBadge(false);
+      setTimeout(connectSSE, 5000);
+      if (evtSource) evtSource.close();
+    };
+  }
+
+  // ── Apply full state update ────────────────────────────────────────────────
+  function applyState(state) {
+    _state = state;
+    document.getElementById('model-label').textContent = state.model || '';
+
+    const on = state.power;
+    setDeviceBadge(state.connected, on);
+
+    const btn = document.getElementById('btn-power');
+    btn.disabled = false;
+    btn.className = on ? 'btn-power-on' : 'btn-power-off';
+    btn.textContent = on ? 'On' : 'Standby';
+    btn.onclick = () => setPower(!on);
+
+    const overlay = document.getElementById('standby-overlay');
+    overlay.classList.toggle('visible', !on);
+    if (!on) {
+      const isOffline = !state.connected;
+      document.getElementById('standby-icon').textContent  = isOffline ? '⚠' : '⏻';
+      document.getElementById('standby-text').textContent  = isOffline ? 'Matrix device is offline' : 'Device is in standby';
+      const pwrBtn = document.getElementById('standby-power-btn');
+      pwrBtn.style.display = isOffline ? 'none' : '';
+    }
+
+    state.outputs.forEach(out => {
+      const card = document.getElementById(`card-${out.number}`);
+      const isDefaultOut = out.is_default;
+      if (card) card.style.display = isDefaultOut ? 'none' : '';
+
+      const nameEl = document.getElementById(`outname-${out.number}`);
+      if (nameEl) nameEl.textContent = out.name;
+
+      const sigEl = document.getElementById(`sig-${out.number}`);
+      if (sigEl) sigEl.classList.toggle('active', out.connected);
+
+      const sel = document.getElementById(`sel-${out.number}`);
+      if (sel && !sel.closest('.card').classList.contains('switching')) {
+        sel.disabled = !on;
+        // Update options (names and visibility may have changed)
+        state.inputs.forEach(inp => {
+          const opt = sel.querySelector(`option[value="${inp.number}"]`);
+          if (opt) {
+            opt.textContent = inp.name;
+            opt.hidden = inp.is_default;
+          }
+        });
+        // Update selected value without triggering onchange
+        if (parseInt(sel.value) !== out.source) {
+          sel.value = out.source;
+        }
+      }
+
+      // Show/hide CEC button group based on whether connection_type is known
+      const cecBtns = document.getElementById(`cec-btns-${out.number}`);
+      if (cecBtns) cecBtns.style.display = out.connection_type ? '' : 'none';
+
+      // Show/hide the remote button based on the current source's device type
+      const remoteBtn = document.getElementById(`rmt-btn-${out.number}`);
+      if (remoteBtn) {
+        const inp = _state ? _state.inputs.find(i => i.number === out.source) : null;
+        const dtype = inp ? inp.device_type : 'generic';
+        remoteBtn.style.display = dtype === 'signage' ? 'none' : '';
+      }
+    });
+    _updateRemoteTitle();
+  }
+
+  // ── Badge helpers ─────────────────────────────────────────────────────────────
+  function setAppBadge(connected) {
+    const badge = document.getElementById('app-badge');
+    const label = document.getElementById('app-label');
+    badge.className = 'badge ' + (connected ? 'app-ok' : 'connecting');
+    label.textContent = connected ? 'Server' : 'Connecting…';
+  }
+
+  function setDeviceBadge(connected, power) {
+    const badge = document.getElementById('device-badge');
+    const label = document.getElementById('device-label');
+    if (!connected) {
+      badge.className = 'badge off';
+      label.textContent = 'Matrix Offline';
+    } else if (power) {
+      badge.className = 'badge on';
+      label.textContent = 'Matrix';
+    } else {
+      badge.className = 'badge standby';
+      label.textContent = 'Matrix Standby';
+    }
+  }
+
+  // ── Switch source ──────────────────────────────────────────────────────────
+  async function switchSource(output, source) {
+    const card = document.getElementById(`card-${output}`);
+    card.classList.add('switching');
+    try {
+      const resp = await fetch('/api/switch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({output: parseInt(output), source: parseInt(source)})
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) {
+        showToast('Switch failed: ' + (data.error || resp.status), 'error');
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    } finally {
+      card.classList.remove('switching');
+    }
+  }
+
+  // ── Power control ──────────────────────────────────────────────────────────
+  async function setPower(on) {
+    const btn = document.getElementById('btn-power');
+    btn.disabled = true;
+    try {
+      const resp = await fetch('/api/power', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({state: on ? 1 : 0})
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) {
+        showToast('Power command failed: ' + (data.error || resp.status), 'error');
+      } else {
+        showToast(on ? 'Powering on…' : 'Entering standby…', 'ok');
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    }
+    // Re-enable after brief delay; SSE state update will set correct state
+    setTimeout(() => { btn.disabled = false; }, 2000);
+  }
+
+  // ── CEC power ──────────────────────────────────────────────────────────────
+  async function cecPower(output, on, btn) {
+    const outState = _state && _state.outputs.find(o => o.number === output);
+    const connectionType = outState && outState.connection_type;
+    if (!connectionType) {
+      showToast('Connection type unknown — refresh config', 'error');
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const resp = await fetch('/api/cec', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({output, connection_type: connectionType, state: on ? 1 : 0})
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) {
+        showToast('CEC failed: ' + (data.error || resp.status), 'error');
+      } else {
+        showToast(`CEC ${on ? 'power on' : 'standby'} sent to output ${output}`, 'ok');
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Refresh names ──────────────────────────────────────────────────────────
+  async function refreshNames() {
+    await fetch('/api/refresh-names', {method: 'POST'});
+    showToast('Config refreshing…', 'ok');
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg, type='ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+  }
+
+  // ── Remote popup ───────────────────────────────────────────────────────────
+  let _state        = null;
+  let _remoteOutputNum = null;
+
+  // Button definitions keyed by group name.
+  // Each entry: {index, icon, title, cls} — icon is a FA class string,
+  // or omit icon and set label for plain text buttons (digits, CH arrows).
+  const BTN_GROUPS = {
+    power: [
+      {index: 1,  icon: 'fa-solid fa-power-off', title: 'Power On',      cls: 'rmt-power-on'},
+      {index: null},
+      {index: 2,  icon: 'fa-solid fa-power-off', title: 'Power Standby', cls: 'rmt-power-off'},
+    ],
+    nav: [
+      {index: null},
+      {index: 3,  icon: 'fa-solid fa-chevron-up',    title: 'Up'},
+      {index: null},
+      {index: 4,  icon: 'fa-solid fa-chevron-left',  title: 'Left'},
+      {index: 5,  icon: 'fa-solid fa-circle',        title: 'OK / Select', cls: 'rmt-ok'},
+      {index: 6,  icon: 'fa-solid fa-chevron-right', title: 'Right'},
+      {index: 7,  icon: 'fa-solid fa-bars',          title: 'Menu'},
+      {index: 8,  icon: 'fa-solid fa-chevron-down',  title: 'Down'},
+      {index: 9,  icon: 'fa-solid fa-reply',         title: 'Back'},
+    ],
+    playback: [
+      {index: 10, icon: 'fa-solid fa-backward-step', title: 'Previous'},
+      {index: 11, icon: 'fa-solid fa-play',          title: 'Play'},
+      {index: 12, icon: 'fa-solid fa-forward-step',  title: 'Next'},
+      {index: 13, icon: 'fa-solid fa-backward',      title: 'Rewind'},
+      {index: 14, icon: 'fa-solid fa-pause',         title: 'Pause'},
+      {index: 15, icon: 'fa-solid fa-forward',       title: 'Fast Forward'},
+      {index: null},
+      {index: 16, icon: 'fa-solid fa-stop',          title: 'Stop'},
+      {index: null},
+    ],
+    transport: [
+      {index: null},
+      {index: 11, icon: 'fa-solid fa-play',  title: 'Play'},
+      {index: null},
+      {index: null},
+      {index: 14, icon: 'fa-solid fa-pause', title: 'Pause'},
+      {index: null},
+    ],
+    volume: [
+      {index: 18, icon: 'fa-solid fa-volume-low',   title: 'Volume Down'},
+      {index: 17, icon: 'fa-solid fa-volume-xmark', title: 'Mute'},
+      {index: 19, icon: 'fa-solid fa-volume-high',  title: 'Volume Up'},
+    ],
+    channel: [
+      {index: 21, label: '1', title: 'Digit 1', cls: 'rmt-digit'},
+      {index: 22, label: '2', title: 'Digit 2', cls: 'rmt-digit'},
+      {index: 23, label: '3', title: 'Digit 3', cls: 'rmt-digit'},
+      {index: 24, label: '4', title: 'Digit 4', cls: 'rmt-digit'},
+      {index: 25, label: '5', title: 'Digit 5', cls: 'rmt-digit'},
+      {index: 26, label: '6', title: 'Digit 6', cls: 'rmt-digit'},
+      {index: 27, label: '7', title: 'Digit 7', cls: 'rmt-digit'},
+      {index: 28, label: '8', title: 'Digit 8', cls: 'rmt-digit'},
+      {index: 29, label: '9', title: 'Digit 9', cls: 'rmt-digit'},
+      {index: 30, label: '\u25b2', title: 'Channel Up',   cls: 'rmt-ch'},
+      {index: 20, label: '0',      title: 'Digit 0',      cls: 'rmt-digit'},
+      {index: 31, label: '\u25bc', title: 'Channel Down', cls: 'rmt-ch'},
+    ],
+  };
+
+  // Which button groups to render per device type.
+  // "signage" is not listed — those inputs have no remote button at all.
+  const DEVICE_PROFILES = {
+    cable:     ['power', 'nav', 'volume', 'channel'],
+    dvd:       ['power', 'nav', 'playback', 'volume'],
+    streaming: ['power', 'nav', 'transport', 'volume'],
+    generic:   ['power', 'nav', 'volume'],
+  };
+
+  function _makeBtn(b) {
+    const btn = document.createElement('button');
+    let cls = 'rmt-btn';
+    if (b.index === null) { btn.className = cls + ' rmt-empty'; return btn; }
+    if (b.cls) cls += ' ' + b.cls;
+    btn.className = cls;
+    btn.title = b.title || '';
+    if (b.icon) {
+      const i = document.createElement('i');
+      i.className = b.icon;
+      i.setAttribute('aria-hidden', 'true');
+      btn.appendChild(i);
+    } else if (b.label !== undefined) {
+      btn.textContent = b.label;
+    }
+    const idx = b.index;
+    btn.addEventListener('click', () => sendCecKey(idx, btn));
+    return btn;
+  }
+
+  function _buildRemoteGrid() {
+    const grid = document.getElementById('remote-grid');
+    // Populated dynamically on openRemote() — this just pre-builds nothing.
+    // We rebuild each time openRemote is called so the profile can change.
+  }
+
+  function _renderRemoteForType(deviceType) {
+    const grid    = document.getElementById('remote-grid');
+    const chSect  = document.getElementById('channel-section');
+    grid.innerHTML   = '';
+    chSect.innerHTML = '';
+    chSect.classList.remove('visible');
+
+    const profile = DEVICE_PROFILES[deviceType] || DEVICE_PROFILES.generic;
+    profile.forEach(groupName => {
+      if (groupName === 'channel') {
+        // Channel pad goes in its own section with a divider
+        const divider = document.createElement('div');
+        divider.className = 'channel-divider';
+        chSect.appendChild(divider);
+        const cgrid = document.createElement('div');
+        cgrid.className = 'remote-grid';
+        BTN_GROUPS.channel.forEach(b => cgrid.appendChild(_makeBtn(b)));
+        chSect.appendChild(cgrid);
+        chSect.classList.add('visible');
+      } else {
+        // Add a spacer row between groups (except before the very first)
+        if (grid.children.length > 0) {
+          for (let s = 0; s < 3; s++) {
+            const sp = document.createElement('button');
+            sp.className = 'rmt-btn rmt-empty';
+            grid.appendChild(sp);
+          }
+        }
+        BTN_GROUPS[groupName].forEach(b => grid.appendChild(_makeBtn(b)));
+      }
+    });
+  }
+
+  function openRemote(outputNum) {
+    _remoteOutputNum = outputNum;
+    _updateRemoteTitle();
+    document.getElementById('remote-overlay').classList.add('visible');
+  }
+
+  function closeRemote() {
+    _remoteOutputNum = null;
+    document.getElementById('remote-overlay').classList.remove('visible');
+  }
+
+  function _updateRemoteTitle() {
+    if (!_remoteOutputNum || !_state) return;
+    const out = _state.outputs.find(o => o.number === _remoteOutputNum);
+    if (!out) return;
+    const inp = _state.inputs.find(i => i.number === out.source);
+    const dtype = inp ? inp.device_type : 'generic';
+    document.getElementById('remote-title').textContent =
+      'Remote \u2014 ' + (inp ? inp.name : 'Input ' + out.source);
+    document.getElementById('remote-subtitle').textContent = 'via ' + out.name;
+    _renderRemoteForType(dtype);
+  }
+
+  async function sendCecKey(keyIndex, btn) {
+    if (_remoteOutputNum === null || !_state) return;
+    const out = _state.outputs.find(o => o.number === _remoteOutputNum);
+    if (!out) return;
+    btn.disabled = true;
+    try {
+      const resp = await fetch('/api/cec-key', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({input: out.source, key: keyIndex})
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) {
+        showToast('CEC key failed: ' + (data.error || resp.status), 'error');
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    } finally {
+      setTimeout(() => { btn.disabled = false; }, 300);
+    }
+  }
+
+  // ── Pull-to-refresh ────────────────────────────────────────────────────────
+  (function() {
+    const THRESHOLD = 72;   // px of drag needed to trigger
+    const MAX_PULL  = 100;  // px cap on drag distance
+    let startY = 0, pulling = false, triggered = false;
+
+    const ind = document.createElement('div');
+    ind.id = 'ptr-indicator';
+    ind.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3v5l3-3"/><path d="M16.5 9A7.5 7.5 0 1 1 9 1.5"/></svg>';
+    document.body.appendChild(ind);
+
+    document.addEventListener('touchstart', (e) => {
+      if (document.getElementById('remote-overlay').classList.contains('open')) return;
+      if (window.scrollY === 0 && e.touches.length === 1) {
+        startY = e.touches[0].clientY;
+        pulling = true;
+        triggered = false;
+      }
+    }, {passive: true});
+
+    document.addEventListener('touchmove', (e) => {
+      if (!pulling) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy <= 0) { pulling = false; return; }
+      const clamped = Math.min(dy, MAX_PULL);
+      const progress = Math.min(clamped / THRESHOLD, 1);
+      ind.style.transform = `translateX(-50%) translateY(${clamped * 0.5}px)`;
+      ind.classList.toggle('ptr-visible', dy > 12);
+      ind.querySelector('svg').style.opacity = progress;
+      triggered = dy >= THRESHOLD;
+      ind.querySelector('svg').style.transform = triggered ? '' : `rotate(${progress * 270}deg)`;
+    }, {passive: true});
+
+    document.addEventListener('touchend', async () => {
+      if (!pulling) return;
+      pulling = false;
+      if (triggered) {
+        ind.classList.add('ptr-spinning');
+        await refreshNames();
+        setTimeout(() => {
+          ind.classList.remove('ptr-spinning', 'ptr-visible');
+          ind.style.transform = '';
+        }, 800);
+      } else {
+        ind.classList.remove('ptr-visible');
+        ind.style.transform = '';
+      }
+    });
+  })();
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  const initialState = {{ state | tojson }};
+  applyState(initialState);
+  connectSSE();
+</script>
+</body>
+</html>

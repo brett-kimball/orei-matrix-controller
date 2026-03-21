@@ -1,0 +1,35 @@
+# Gitignore for matrix-switch
+
+# Config contains credentials — never commit
+config.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Logs
+*.log
+logs/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# One-off test/probe scripts
+test_*.py
+
+# Personal logo — replace static/logo.png with your own image
+static/burgee.png

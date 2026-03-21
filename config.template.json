@@ -1,0 +1,79 @@
+{
+  "_comment": "Copy this file to config.json and fill in your values. config.json is gitignored.",
+  "title": "Matrix Switch",
+  "matrix": {
+    "host": "192.168.1.100",
+    "http_port": 80,
+    "http_user": "Admin",
+    "http_password": "admin",
+    "telnet_port": 23,
+    "num_inputs": 8,
+    "num_outputs": 8
+  },
+  "polling": {
+    "status_interval_seconds": 10,
+    "names_interval_seconds": 3600
+  },
+  "flask": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "debug": false,
+    "secret_key": "CHANGE-ME-use-a-long-random-string"
+  },
+  "logging": {
+    "level": "INFO"
+  },
+
+  "schedule": [
+    {
+      "_comment": "Put the matrix switch into standby at 02:35 (after CEC off commands at 02:30)",
+      "time": "02:35",
+      "days": "all",
+      "action": "matrix_standby"
+    },
+    {
+      "_comment": "Turn all named outputs off at 02:30 every day",
+      "time": "02:30",
+      "days": "all",
+      "action": "off",
+      "outputs": "all",
+      "source_is": "any"
+    },
+    {
+      "_comment": "Wake the matrix switch at 06:55, before CEC on commands",
+      "time": "06:55",
+      "days": "all",
+      "action": "matrix_on"
+    },
+    {
+      "_comment": "Turn on at 07:00 only outputs routed to signage inputs (e.g. inputs 2 and 3)",
+      "time": "07:00",
+      "days": "all",
+      "action": "on",
+      "outputs": "all",
+      "source_is": [2, 3]
+    },
+    {
+      "_comment": "Route outputs 2 and 3 to input 1 at 08:00 on weekdays",
+      "time": "08:00",
+      "days": ["mon", "tue", "wed", "thu", "fri"],
+      "action": "switch",
+      "outputs": [2, 3],
+      "source": 1
+    },
+    {
+      "_comment": "Send CEC power-on to source devices on all named inputs at 07:00",
+      "time": "07:00",
+      "days": "all",
+      "action": "source_on",
+      "inputs": "all"
+    },
+    {
+      "_comment": "Send CEC standby to source devices on specific inputs at 02:30",
+      "time": "02:30",
+      "days": "all",
+      "action": "source_off",
+      "inputs": [1, 2, 3]
+    }
+  ]
+}
