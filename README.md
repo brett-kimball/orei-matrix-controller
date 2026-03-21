@@ -117,6 +117,8 @@ Then open `http://localhost:5000` in a browser.
 
 Copy `config.template.json` to `config.json` and edit it. The file is gitignored so credentials are never committed.
 
+> **Note:** The examples below use `//` comments for explanation. Standard JSON does not support comments — use `config.template.json` as your starting point, which is comment-free and ready to parse.
+
 ```jsonc
 {
   "matrix": {
