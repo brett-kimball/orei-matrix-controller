@@ -130,7 +130,54 @@ http://<pi-hostname-or-ip>:5000
 
 ---
 
-## 10. Name your inputs and outputs on the matrix switch
+## 10. Configure nginx reverse proxy (optional)
+
+Skip this step if you only need LAN access — the app is already reachable on port 5000
+from any device on the local network.
+
+If you want to expose the app publicly through an FQDN (with HTTPS via Certbot), use
+the provided nginx virtual-host file.
+
+### Create the basic-auth password file
+
+```bash
+sudo apt install apache2-utils   # provides htpasswd
+sudo htpasswd -c /etc/nginx/.htpasswd-matrix-switch <username>
+# Enter and confirm the password when prompted.
+# To add more users (omit -c to append): sudo htpasswd /etc/nginx/.htpasswd-matrix-switch <username2>
+```
+
+### Install the virtual-host config
+
+```bash
+sudo cp /opt/matrix-switch/matrix-switch.nginx /etc/nginx/sites-available/matrix-switch
+```
+
+Edit the file and replace `matrix.example.com` with your actual FQDN:
+
+```bash
+sudo nano /etc/nginx/sites-available/matrix-switch
+```
+
+Enable the site and reload nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/matrix-switch /etc/nginx/sites-enabled/matrix-switch
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Add HTTPS with Certbot
+
+```bash
+sudo certbot --nginx -d matrix.example.com
+```
+
+Certbot will automatically modify the virtual-host file to add HTTPS and redirect HTTP
+to HTTPS.
+
+---
+
+## 11. Name your inputs and outputs on the matrix switch
 
 **The app hides any port that still has its factory-default name** (e.g. `input1`, `hdmi output3`). Until you rename ports on the matrix device itself, the web UI will show an empty grid.
 
