@@ -207,6 +207,8 @@ class MatrixClient:
         """Hot-reload schedule and polling intervals from a freshly parsed config dict.
 
         Network/flask settings are intentionally excluded — those require a restart.
+        Title and other app-level settings are handled by app.py updating its own
+        module-level config reference before calling this method.
         """
         poll = config.get("polling", {})
         new_status_interval = poll.get("status_interval_seconds", self.status_interval)

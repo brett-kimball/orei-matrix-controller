@@ -126,8 +126,10 @@ def api_power():
 
 @app.route("/api/refresh-names", methods=["POST"])
 def api_refresh_names():
+    global config
     try:
         fresh_config = load_config()
+        config = fresh_config
         matrix.reload_config(fresh_config)
     except Exception:
         logger.exception("Failed to reload config.json")

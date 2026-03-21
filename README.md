@@ -78,7 +78,7 @@ If both entries for a slot have non-default names (misconfiguration), the HDMI n
 
 **Any input or output whose name matches the default patterns is hidden in the web UI.** This keeps the display clean when only a subset of ports are in use.
 
-To make a port appear in the UI, give its correct-side output entry a custom name using the matrix switch's own web interface (navigate to the device's IP address in a browser, go to the output settings, and rename either the HDMI or HDBaseT entry — not both). The custom names are fetched from the device and refreshed every hour (configurable via `names_interval_seconds`). Use the **↺ Refresh Config** button in the UI to force an immediate re-fetch.
+To make a port appear in the UI, give its correct-side output entry a custom name using the matrix switch's own web interface (navigate to the device's IP address in a browser, go to the output settings, and rename either the HDMI or HDBaseT entry — not both). The custom names are fetched from the device and refreshed every hour (configurable via `names_interval_seconds`). Use the **↺ Refresh Config** button in the UI to force an immediate re-fetch. It also reloads `config.json`, picking up changes to the title, schedule, and polling intervals without restarting the service.
 
 The patterns detected as defaults are (case-insensitive):
 - Input: matches `input` followed by optional whitespace and a number
@@ -253,7 +253,7 @@ matrix/
 | `POST` | `/api/power` | Power control: `{"state": 1}` = on, `{"state": 0}` = standby |
 | `POST` | `/api/cec` | CEC power to one output: `{"output": N, "connection_type": "hdmi"\|"hdbt", "state": 0\|1}` |
 | `POST` | `/api/cec-key` | CEC keypress to an input device: `{"input": N, "key": index}` (key 1–32, see below) |
-| `POST` | `/api/refresh-names` | Immediately re-fetch input/output names from the device |
+| `POST` | `/api/refresh-names` | Reload `config.json` (title, schedule, polling intervals) and re-fetch input/output names from the device |
 
 ---
 
