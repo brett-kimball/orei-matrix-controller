@@ -125,8 +125,8 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
     "http_user": "Admin",          // HTTP login username
     "http_password": "admin",      // HTTP login password
     "telnet_port": 23,             // Telnet push-notification port
-    "num_inputs": 8,               // Total number of inputs
-    "num_outputs": 8               // Total number of outputs
+    "num_inputs": 8,               // Total number of inputs  (adjust for 4×4, 4×8, etc.)
+    "num_outputs": 8               // Total number of outputs (adjust for 4×4, 4×8, etc.)
   },
   "polling": {
     "status_interval_seconds": 10,    // Routing poll interval (seconds)
@@ -323,3 +323,5 @@ Whether the OREI matrix exposes these CEC queries through its HTTP API has not y
 ## Compatibility
 
 Tested against the **OREI UHD88-EXB400R-K** (firmware V1.03.01). The HTTP `comhead` API and telnet push format are shared across OREI's HDBaseT matrix switch family; other models in the range are likely compatible with little or no modification.
+
+The UI scales automatically to any port count — set `num_inputs` and `num_outputs` in `config.json` to match your hardware (e.g. `4` and `4` for a 4×4 switch) and the routing grid, dropdowns, and all logic will adjust accordingly.
