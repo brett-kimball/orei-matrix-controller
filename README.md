@@ -327,3 +327,5 @@ Whether the OREI matrix exposes these CEC queries through its HTTP API has not y
 Tested against the **OREI UHD88-EXB400R-K** (firmware V1.03.01). The HTTP `comhead` API and telnet push format are shared across OREI's HDBaseT matrix switch family; other models in the range are likely compatible with little or no modification.
 
 The UI scales automatically to any port count — set `num_inputs` and `num_outputs` in `config.json` to match your hardware (e.g. `4` and `4` for a 4×4 switch) and the routing grid, dropdowns, and all logic will adjust accordingly.
+
+**HDMI-only switches** (no HDBaseT outputs) are also supported. The app requests HDBaseT output names and signal status from the device but gracefully falls back to defaults if the device does not return them. On an HDMI-only switch, simply rename the `hdmi outputN` entries on the device as normal — the HDBaseT-specific fields are safely ignored.
