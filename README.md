@@ -91,7 +91,8 @@ The patterns detected as defaults are (case-insensitive):
 
 ```bash
 # Clone / copy the project
-cd /home/brett/Projects/matrix
+git clone https://github.com/brett-kimball/orei-matrix-controller.git
+cd orei-matrix-controller
 
 # Create and activate a virtual environment
 python3 -m venv .venv

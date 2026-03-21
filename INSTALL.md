@@ -18,7 +18,7 @@ If you cloned the repo on another machine, copy it across (adjust source path as
 
 ```bash
 sudo rsync -av --exclude='.venv' --exclude='__pycache__' \
-    /home/brett/Projects/matrix/ /opt/matrix-switch/
+    /path/to/orei-matrix-controller/ /opt/matrix-switch/
 ```
 
 Or clone directly on the Pi (replace with your actual repo URL if using git):
@@ -222,7 +222,7 @@ git checkout -- static/logo.png static/favicon.png static/icons/
 ```bash
 # Copy new files
 sudo rsync -av --exclude='.venv' --exclude='__pycache__' --exclude='config.json' \
-    /home/brett/Projects/matrix/ /opt/matrix-switch/
+    /path/to/orei-matrix-controller/ /opt/matrix-switch/
 
 # Fix ownership and restart
 sudo chown -R matrix:matrix /opt/matrix-switch
