@@ -195,13 +195,25 @@ generic matrix-switch graphic. Replace it with your own image to personalise the
    EOF
    ```
 
-4. Restart the service to serve the updated files:
+4. Tell git to ignore your local overrides so they are not overwritten by future `git pull` updates:
+   ```bash
+   git update-index --skip-worktree static/logo.png static/favicon.png \
+       static/icons/apple-touch-icon.png static/icons/icon-192.png static/icons/icon-512.png
+   ```
+
+5. Restart the service to serve the updated files:
    ```bash
    sudo systemctl restart matrix-switch
    ```
 
-The generated icon files (`static/favicon.png`, `static/icons/`) are listed in
-`.gitignore` and are not tracked by git — regenerate them on each deployment.
+The repo ships with generic versions of all five image files. Once you mark them as
+`skip-worktree` (step 4), git will leave your custom files alone on every subsequent
+`git pull`. To undo this and revert to the generic images, run:
+```bash
+git update-index --no-skip-worktree static/logo.png static/favicon.png \
+    static/icons/apple-touch-icon.png static/icons/icon-192.png static/icons/icon-512.png
+git checkout -- static/logo.png static/favicon.png static/icons/
+```
 
 ---
 
