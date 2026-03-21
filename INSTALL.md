@@ -109,6 +109,37 @@ http://<pi-hostname-or-ip>:5000
 
 ---
 
+## 9. Name your inputs and outputs on the matrix switch
+
+**The app hides any port that still has its factory-default name** (e.g. `input1`, `hdmi output3`). Until you rename ports on the matrix device itself, the web UI will show an empty grid.
+
+### How to rename
+
+1. Open the matrix switch's own web interface in a browser (navigate to the IP address you put in `config.json`).
+2. Log in (default credentials: `Admin` / `admin`).
+3. Go to the input or output settings page and give each connected port a descriptive name (e.g. `Apple TV`, `Bar Sign`, `Conference Room`).
+
+### Inputs
+
+Rename every input that has a source device connected. Inputs left at their default (`input1`, `input2`, …) are hidden in the UI.
+
+### Outputs — name only the primary connection side
+
+Each physical output slot has **two entries** on the matrix: an HDMI output and an HDBaseT output. They share the same routing slot. **Only rename the entry that matches the cable actually connected to the display:**
+
+| Connection | Rename | Leave at default |
+|---|---|---|
+| Direct HDMI cable to display | `hdmi outputN` entry | `hdbt outputN` entry |
+| HDBaseT extender to display | `hdbt outputN` entry | `hdmi outputN` entry |
+
+The app uses which side has a custom name to determine the display name **and** to infer the connection type for CEC commands — so naming only the correct side is important. If you accidentally name both sides, the HDMI name takes precedence.
+
+### After renaming
+
+Click **↺ Refresh Config** in the app (top-right of the header) to pull the new names immediately, or wait for the automatic hourly refresh.
+
+---
+
 ## Useful commands
 
 | Purpose | Command |
