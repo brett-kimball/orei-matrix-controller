@@ -267,7 +267,7 @@ The remote button set is selected automatically by matching the **input name** (
 | `cable` | xfinity, comcast, cable, cox, spectrum, directv, dish |
 | `streaming` | appletv, apple tv, firetv, fire tv, fire stick, roku, chromecast, shield, streaming, stream |
 | `dvd` | blu, bluray, blu-ray, dvd, oppo, disc, player |
-| `signage` | brightsign, scala, signage, display, player |
+| `signage` | brightsign, scala, xibo, signage, display, player |
 | `generic` | *(anything else)* |
 
 The first matching keyword wins. Inputs named with the factory default pattern (e.g. `input1`) are `generic`.

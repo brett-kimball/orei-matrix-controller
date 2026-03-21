@@ -592,7 +592,7 @@ class MatrixClient:
         (["appletv", "apple tv", "firetv", "fire tv", "fire stick",
           "roku", "chromecast", "shield", "streaming", "stream"], "streaming"),
         (["blu", "bluray", "blu-ray", "dvd", "oppo", "disc", "player"], "dvd"),
-        (["brightsign", "scala", "signage", "display", "player"], "signage"),
+        (["brightsign", "scala", "xibo", "signage", "display", "player"], "signage"),
         (["music", "audio", "stereo", "receiver", "amp", "speaker"], "signage"),
     ]
 
