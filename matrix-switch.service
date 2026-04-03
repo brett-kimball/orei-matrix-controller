@@ -9,7 +9,9 @@ Group=matrix
 WorkingDirectory=/opt/matrix/orei-matrix-controller
 ExecStart=/opt/matrix/.venv/bin/gunicorn app:app \
     --bind 0.0.0.0:5000 \
-    --workers 4 \
+    --workers 2 \
+    --worker-class gthread \
+    --threads 4 \
     --timeout 120 \
     --access-logfile /var/log/matrix-switch/access.log \
     --error-logfile /var/log/matrix-switch/error.log
