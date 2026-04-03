@@ -246,24 +246,24 @@ generic matrix-switch graphic. Replace it with your own image to personalise the
    sudo -u matrix /opt/matrix/.venv/bin/pip install pillow
    ```
 
-3. Regenerate all icon sizes from the repo directory:
+3. Regenerate all icon sizes:
    ```bash
-   cd /opt/matrix/orei-matrix-controller
    sudo -u matrix /opt/matrix/.venv/bin/python3 - << 'EOF'
    from PIL import Image
    import os
-   img = Image.open("static/logo.png").convert("RGBA")
+   base = "/opt/matrix/orei-matrix-controller/static"
+   img = Image.open(f"{base}/logo.png").convert("RGBA")
    w, h = img.size
    size = max(w, h)
    bg = Image.new("RGBA", (size, size), (15, 17, 23, 255))
    bg.paste(img, ((size - w) // 2, (size - h) // 2), img)
    bg = bg.convert("RGB")
-   os.makedirs("static/icons", exist_ok=True)
+   os.makedirs(f"{base}/icons", exist_ok=True)
    for s, path in [
-       (32,  "static/favicon.png"),
-       (180, "static/icons/apple-touch-icon.png"),
-       (192, "static/icons/icon-192.png"),
-       (512, "static/icons/icon-512.png"),
+       (32,  f"{base}/favicon.png"),
+       (180, f"{base}/icons/apple-touch-icon.png"),
+       (192, f"{base}/icons/icon-192.png"),
+       (512, f"{base}/icons/icon-512.png"),
    ]:
        bg.resize((s, s), Image.LANCZOS).save(path, "PNG", optimize=True)
        print(f"  {path}")
@@ -272,7 +272,8 @@ generic matrix-switch graphic. Replace it with your own image to personalise the
 
 4. Tell git to ignore your local overrides so they are not overwritten by future `git pull` updates:
    ```bash
-   git update-index --skip-worktree static/logo.png static/favicon.png \
+   sudo -u matrix git -C /opt/matrix/orei-matrix-controller update-index --skip-worktree \
+       static/logo.png static/favicon.png \
        static/icons/apple-touch-icon.png static/icons/icon-192.png static/icons/icon-512.png
    ```
 
@@ -285,9 +286,11 @@ The repo ships with generic versions of all five image files. Once you mark them
 `skip-worktree` (step 4), git will leave your custom files alone on every subsequent
 `git pull`. To undo this and revert to the generic images, run:
 ```bash
-git update-index --no-skip-worktree static/logo.png static/favicon.png \
+sudo -u matrix git -C /opt/matrix/orei-matrix-controller update-index --no-skip-worktree \
+    static/logo.png static/favicon.png \
     static/icons/apple-touch-icon.png static/icons/icon-192.png static/icons/icon-512.png
-git checkout -- static/logo.png static/favicon.png static/icons/
+sudo -u matrix git -C /opt/matrix/orei-matrix-controller checkout -- \
+    static/logo.png static/favicon.png static/icons/
 ```
 
 ---
@@ -295,9 +298,8 @@ git checkout -- static/logo.png static/favicon.png static/icons/
 ## Updating
 
 ```bash
-cd /opt/matrix/orei-matrix-controller
-sudo -u matrix git pull
-sudo -u matrix /opt/matrix/.venv/bin/pip install -r requirements.txt
+sudo -u matrix git -C /opt/matrix/orei-matrix-controller pull
+sudo -u matrix /opt/matrix/.venv/bin/pip install -r /opt/matrix/orei-matrix-controller/requirements.txt
 sudo systemctl restart matrix-switch
 ```
 
