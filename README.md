@@ -251,7 +251,7 @@ matrix/
 | `GET` | `/api/events` | SSE stream of state updates |
 | `POST` | `/api/switch` | Route an output: `{"output": N, "source": M}` |
 | `POST` | `/api/power` | Power control: `{"state": 1}` = on, `{"state": 0}` = standby |
-| `POST` | `/api/cec` | CEC power to one output: `{"output": N, "connection_type": "hdmi"\|"hdbt", "state": 0\|1}` |
+| `POST` | `/api/cec` | CEC command to one output: `{"output": N, "connection_type": "hdmi"\|"hdbt", "state": 0\|1\|2}` — `1`=On, `0`=Off, `2`=Input/Source |
 | `POST` | `/api/cec-key` | CEC keypress to an input device: `{"input": N, "key": index}` (key 1–32, see below) |
 | `POST` | `/api/refresh-config` | Reload `config.json` (title, schedule, polling intervals) and re-fetch input/output names from the device |
 
