@@ -124,6 +124,24 @@ def api_power():
     return jsonify({"error": "Power command failed"}), 502
 
 
+@app.route("/api/preset", methods=["POST"])
+def api_preset():
+    """Apply a preset routing configuration.
+    Body: {"index": N}  where N is 1-8.
+    """
+    data = request.get_json(force=True, silent=True) or {}
+    index = data.get("index")
+    if not isinstance(index, int) or not (1 <= index <= 8):
+        return jsonify({"error": "index must be an integer between 1 and 8"}), 400
+    try:
+        ok = matrix.apply_preset(index)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    if ok:
+        return jsonify({"ok": True})
+    return jsonify({"error": "Preset command failed"}), 502
+
+
 @app.route("/api/refresh-config", methods=["POST"])
 def api_refresh_config():
     global config

@@ -47,6 +47,7 @@ class MatrixClient:
         self.input_names: list[str] = [f"Input {i+1}" for i in range(self.num_inputs)]
         self.output_names: list[str] = [f"Output {i+1}" for i in range(self.num_outputs)]
         self.hdbt_output_names: list[str] = [f"Output {i+1}" for i in range(self.num_outputs)]
+        self.preset_names: list[str] = [f"preset{i+1}" for i in range(8)]
         self.routing: list[int] = list(range(1, self.num_outputs + 1))
         self.output_connected: list[bool] = [False] * self.num_outputs
         self.power: bool = False
@@ -156,6 +157,8 @@ class MatrixClient:
                     self.output_names = [n.strip() for n in list(resp["alloutputname"])[: self.num_outputs]]
                 if "allhdbtoutputname" in resp:
                     self.hdbt_output_names = [n.strip() for n in list(resp["allhdbtoutputname"])[: self.num_outputs]]
+                if "allname" in resp:
+                    self.preset_names = [n.strip() for n in list(resp["allname"])[:8]]
                 self._last_names_fetch = now
                 logger.debug("Names refreshed from device")
 
@@ -231,6 +234,19 @@ class MatrixClient:
     # ---------------------------------------------------------------- #
     # Power control
     # ---------------------------------------------------------------- #
+
+    def apply_preset(self, index: int) -> bool:
+        """Apply a preset routing configuration by 1-based index (1–8)."""
+        if not (1 <= index <= 8):
+            raise ValueError(f"Preset index {index} out of range (1-8)")
+        resp = self._http_post({"comhead": "preset set", "language": 0, "index": index})
+        if resp and resp.get("result") == 1:
+            logger.info("Preset %d applied", index)
+            # The device will push a routing update via telnet; also poll immediately.
+            threading.Thread(target=self._fetch_all, name="matrix-preset-poll", daemon=True).start()
+            return True
+        logger.warning("Preset %d failed: resp=%s", index, resp)
+        return False
 
     def set_power(self, on: bool) -> bool:
         """Turn device on (True) or standby (False) via HTTP."""
@@ -367,6 +383,13 @@ class MatrixClient:
                     elif action == "matrix_standby":
                         logger.info("Schedule event %d fired: matrix power STANDBY", i)
                         self.set_power(False)
+                    elif action == "preset":
+                        preset_index = event.get("index")
+                        if preset_index is None:
+                            logger.warning("Schedule event %d: 'preset' action missing 'index'", i)
+                        else:
+                            logger.info("Schedule event %d fired: preset %s", i, preset_index)
+                            self.apply_preset(int(preset_index))
                     elif action == "switch":
                         outputs_cfg = event.get("outputs", "all")
                         source      = event.get("source")
@@ -661,4 +684,5 @@ class MatrixClient:
                     for i in range(self.num_inputs)
                 ],
                 "outputs": outputs,
+                "preset_names": list(self.preset_names),
             }

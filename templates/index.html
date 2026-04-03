@@ -295,9 +295,69 @@
     .standby-icon { font-size: 3rem; }
 
     .refresh-btn-wrap {
-      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
       margin-bottom: 12px;
     }
+
+    /* Preset modal */
+    .preset-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .preset-overlay.visible { display: flex; }
+    .preset-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .preset-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .preset-title { font-size: 0.95rem; font-weight: 700; }
+    .preset-close {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .preset-close:hover { color: var(--text); border-color: var(--accent); }
+    .preset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .preset-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .preset-item:hover:not(:disabled) { border-color: var(--accent); background: var(--border); }
+    .preset-item:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* Remote button beside dropdown */
     .input-row { display: flex; gap: 8px; align-items: center; }
@@ -420,7 +480,8 @@
 </header>
 
 <div class="refresh-btn-wrap">
-  <button class="btn-secondary" onclick="refreshConfig()">↺ Refresh Config</button>
+  <button class="btn-secondary" id="btn-preset" onclick="openPresetModal()"><i class="fa-solid fa-list"></i> Presets</button>
+  <button class="btn-secondary" onclick="refreshConfig()">&#8634; Refresh Config</button>
 </div>
 
 <div class="grid" id="output-grid">
@@ -479,6 +540,16 @@
   <div class="standby-icon" id="standby-icon">⏻</div>
   <div id="standby-text">Device is in standby</div>
   <button class="btn-power-on" id="standby-power-btn" onclick="setPower(true)">Power On</button>
+</div>
+
+<div class="preset-overlay" id="preset-overlay" onclick="if(event.target===this)closePresetModal()">
+  <div class="preset-modal">
+    <div class="preset-header">
+      <div class="preset-title">Apply Preset</div>
+      <button class="preset-close" onclick="closePresetModal()">&#x2715;</button>
+    </div>
+    <div class="preset-list" id="preset-list"></div>
+  </div>
 </div>
 
 <div class="remote-overlay" id="remote-overlay" onclick="if(event.target===this)closeRemote()">
@@ -675,7 +746,59 @@
       btn.disabled = false;
     }
   }
+  // ── Preset modal ──────────────────────────────────────────────────────
+  function openPresetModal() {
+    _renderPresetList();
+    document.getElementById('preset-overlay').classList.add('visible');
+  }
 
+  function closePresetModal() {
+    document.getElementById('preset-overlay').classList.remove('visible');
+  }
+
+  function _renderPresetList() {
+    const list = document.getElementById('preset-list');
+    list.innerHTML = '';
+    const names = (_state && _state.preset_names) || [];
+    const DEFAULT_RE = /^preset\d+$/i;
+    names.forEach((name, i) => {
+      if (DEFAULT_RE.test(name)) return;  // skip unnamed presets
+      const btn = document.createElement('button');
+      btn.className = 'preset-item';
+      btn.textContent = name;
+      btn.onclick = () => applyPreset(i + 1, btn);
+      list.appendChild(btn);
+    });
+    if (list.children.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:var(--text-muted);font-size:0.85rem;text-align:center;padding:12px 0';
+      empty.textContent = 'No named presets found. Name a preset on the matrix switch first.';
+      list.appendChild(empty);
+    }
+  }
+
+  async function applyPreset(index, btn) {
+    if (btn) btn.disabled = true;
+    try {
+      const resp = await fetch('/api/preset', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({index})
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) {
+        showToast('Preset failed: ' + (data.error || resp.status), 'error');
+      } else {
+        const name = (_state && _state.preset_names && _state.preset_names[index - 1]) || `Preset ${index}`;
+        showToast(`Preset “${name}” applied`, 'ok');
+        closePresetModal();
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
   // ── Refresh config ─────────────────────────────────────────────────────────
   async function refreshConfig() {
     await fetch('/api/refresh-config', {method: 'POST'});
