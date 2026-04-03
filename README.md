@@ -254,10 +254,13 @@ matrix/
 
 ## API Endpoints
 
+All endpoints are unauthenticated — any client on the network (curl, Home Assistant, Node-RED, custom scripts, etc.) can call them directly.
+
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | Web UI |
 | `GET` | `/api/state` | Full JSON state snapshot |
+| `GET` | `/api/schedule` | Active schedule with `next_fire` timestamp for each event |
 | `GET` | `/api/events` | SSE stream of state updates |
 | `POST` | `/api/switch` | Route an output: `{"output": N, "source": M}` |
 | `POST` | `/api/preset` | Apply a preset: `{"index": N}` (N = 1–8) |
@@ -265,6 +268,60 @@ matrix/
 | `POST` | `/api/cec` | CEC command to one output: `{"output": N, "connection_type": "hdmi"\|"hdbt", "state": 0\|1\|2}` — `1`=On, `0`=Off, `2`=Input/Source |
 | `POST` | `/api/cec-key` | CEC keypress to an input device: `{"input": N, "key": index}` (key 1–32, see below) |
 | `POST` | `/api/refresh-config` | Reload `config.json` (title, schedule, polling intervals) and re-fetch input/output names from the device |
+
+### Usage examples
+
+All POST endpoints accept JSON. Replace `matrix.local:5000` with the Pi's hostname or IP address.
+
+**Get current routing state:**
+```bash
+curl http://matrix.local:5000/api/state
+```
+
+**Get the active schedule:**
+```bash
+curl http://matrix.local:5000/api/schedule
+```
+
+**Route output 2 to input 3:**
+```bash
+curl -X POST http://matrix.local:5000/api/switch \
+  -H "Content-Type: application/json" \
+  -d '{"output": 2, "source": 3}'
+```
+
+**Apply preset 1:**
+```bash
+curl -X POST http://matrix.local:5000/api/preset \
+  -H "Content-Type: application/json" \
+  -d '{"index": 1}'
+```
+
+**CEC power on output 2 (HDBaseT connection):**
+```bash
+curl -X POST http://matrix.local:5000/api/cec \
+  -H "Content-Type: application/json" \
+  -d '{"output": 2, "connection_type": "hdbt", "state": 1}'
+```
+
+**CEC Active Source (switch TV to the matrix's HDMI port) on output 1:**
+```bash
+curl -X POST http://matrix.local:5000/api/cec \
+  -H "Content-Type: application/json" \
+  -d '{"output": 1, "connection_type": "hdmi", "state": 2}'
+```
+
+**Send Play keypress to the source device on input 1:**
+```bash
+curl -X POST http://matrix.local:5000/api/cec-key \
+  -H "Content-Type: application/json" \
+  -d '{"input": 1, "key": 11}'
+```
+
+**Force config reload (e.g. after editing `config.json`):**
+```bash
+curl -X POST http://matrix.local:5000/api/refresh-config
+```
 
 ---
 

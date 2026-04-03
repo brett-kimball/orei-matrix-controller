@@ -96,6 +96,35 @@ def api_state():
     return jsonify(matrix.get_state())
 
 
+@app.route("/api/schedule")
+def api_schedule():
+    """Return the active schedule with next-fire timestamps for each event."""
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    entries = []
+    for i, event in enumerate(matrix._schedule):
+        e = {k: v for k, v in event.items() if not k.startswith("_comment")}
+        # Calculate next fire datetime
+        t = event.get("time", "")
+        try:
+            h, m = map(int, t.split(":"))
+            candidate = now.replace(hour=h, minute=m, second=0, microsecond=0)
+            days = event.get("days", "all")
+            # Walk forward up to 7 days to find the next matching day
+            for delta in range(8):
+                d = candidate + timedelta(days=delta)
+                if days == "all" or d.strftime("%a").lower() in [x.lower() for x in days]:
+                    if d > now:
+                        e["next_fire"] = d.strftime("%Y-%m-%d %H:%M")
+                        break
+            else:
+                e["next_fire"] = None
+        except Exception:
+            e["next_fire"] = None
+        entries.append(e)
+    return jsonify({"schedule": entries, "count": len(entries)})
+
+
 @app.route("/api/switch", methods=["POST"])
 def api_switch():
     data = request.get_json(force=True, silent=True) or {}
