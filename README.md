@@ -43,6 +43,7 @@ All commands are sent as JSON to the switch's built-in HTTP API. This is statele
 | Get output signal status | `get output status` |
 | Get device info / power state | `get status` |
 | Switch an output to an input | `video switch` |
+| Apply a preset routing configuration | `preset set` |
 | Power on | `set poweronoff` with `"power": 1` |
 | Enter standby | `set poweronoff` with `"power": 0` |
 
@@ -79,6 +80,8 @@ If both entries for a slot have non-default names (misconfiguration), the HDMI n
 **Any input or output whose name matches the default patterns is hidden in the web UI.** This keeps the display clean when only a subset of ports are in use.
 
 To make a port appear in the UI, give its correct-side output entry a custom name using the matrix switch's own web interface (navigate to the device's IP address in a browser, go to the output settings, and rename either the HDMI or HDBaseT entry — not both). The custom names are fetched from the device and refreshed every hour (configurable via `names_interval_seconds`). Use the **↺ Refresh Config** button in the UI to force an immediate re-fetch. It also reloads `config.json`, picking up changes to the title, schedule, and polling intervals without restarting the service.
+
+Preset names are also fetched from the device on the same schedule as input/output names. Presets that still have their factory-default name (`preset1` through `preset8`) are automatically hidden from the preset picker; only presets you have actually named on the switch appear.
 
 The patterns detected as defaults are (case-insensitive):
 - Input: matches `input` followed by optional whitespace and a number
@@ -147,9 +150,15 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
     {
       "time": "02:30",             // HH:MM (24-hour, local time)
       "days": "all",               // "all" or an array like ["mon","tue","wed","thu","fri"]
-      "action": "off",             // "on", "off", "matrix_on", "matrix_standby", "switch", "source_on", or "source_off"
+      "action": "off",             // "on", "off", "matrix_on", "matrix_standby", "switch", "preset", "source_on", or "source_off"
       "outputs": "all",            // "all" or an array of output numbers, e.g. [1,3,5]
       "source_is": "any"           // "any" or an array of input numbers, e.g. [2,3]
+    },
+    {
+      "time": "07:00",
+      "days": "all",
+      "action": "preset",          // apply a saved preset routing configuration
+      "index": 1                    // preset number (1-8) as saved on the matrix switch
     },
     {
       "time": "07:00",
@@ -184,7 +193,7 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
 ### Schedule notes
 
 * The `schedule` key is optional — omit it (or set it to `[]`) to disable scheduling entirely.
-* **Actions:** `"on"` / `"off"` send CEC commands to outputs (displays); `"source_on"` / `"source_off"` send CEC power commands to source devices on inputs; `"matrix_on"` and `"matrix_standby"` control power on the matrix switch itself; `"switch"` routes outputs to a different source input. The `outputs`, `source_is` fields are ignored for matrix power actions.
+* **Actions:** `"on"` / `"off"` send CEC commands to outputs (displays); `"source_on"` / `"source_off"` send CEC power commands to source devices on inputs; `"matrix_on"` and `"matrix_standby"` control power on the matrix switch itself; `"switch"` routes outputs to a different source input; `"preset"` applies a saved routing preset. The `outputs`, `source_is` fields are ignored for matrix power and preset actions.
 * **Ordering matters:** the matrix switch must be powered on before CEC commands can be relayed to displays. Schedule `"matrix_on"` a few minutes before any `"on"` CEC event to give the switch time to fully boot (e.g. `matrix_on` at 06:55, CEC `on` at 07:00).
 * **Multiple events at the same time** are supported. All matching events fire in the order they appear in the `schedule` array. If ordering between same-time events matters (e.g. `switch` before `on`), place them in that order in the list. If a guaranteed delay is needed between actions, use times one minute apart.
 * Only outputs that have a **custom name** (i.e. not a default name like `"output3"`) receive CEC commands, because the connection type (`hdmi` or `hdbt`) is inferred from the naming convention.
@@ -193,6 +202,7 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
 * **`source_is`** is optional (defaults to `"any"`). When set to a list of input numbers, the CEC command is only sent to outputs currently routed to one of those inputs — useful for selectively powering on signage players while leaving cable box displays alone.
 * **`source`** (for `"switch"` action only) is the input number to route to. `"outputs"` follows the same `"all"`-or-list convention as CEC actions.
 * **`inputs`** (for `"source_on"` / `"source_off"` only) is `"all"` or a list of input numbers. Only inputs with a custom name (i.e. a known source device) receive the command.
+* **`index`** (for `"preset"` only) is the preset number (1–8) as stored on the matrix switch. To find the right number, use the **Presets** button in the web UI — named presets are listed there. Unnamed presets (`preset1`–`preset8` factory defaults) are still valid targets in the scheduler even if they do not appear in the UI picker.
 
 ---
 
@@ -250,6 +260,7 @@ matrix/
 | `GET` | `/api/state` | Full JSON state snapshot |
 | `GET` | `/api/events` | SSE stream of state updates |
 | `POST` | `/api/switch` | Route an output: `{"output": N, "source": M}` |
+| `POST` | `/api/preset` | Apply a preset: `{"index": N}` (N = 1–8) |
 | `POST` | `/api/power` | Power control: `{"state": 1}` = on, `{"state": 0}` = standby |
 | `POST` | `/api/cec` | CEC command to one output: `{"output": N, "connection_type": "hdmi"\|"hdbt", "state": 0\|1\|2}` — `1`=On, `0`=Off, `2`=Input/Source |
 | `POST` | `/api/cec-key` | CEC keypress to an input device: `{"input": N, "key": index}` (key 1–32, see below) |
