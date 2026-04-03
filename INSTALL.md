@@ -299,6 +299,14 @@ sudo -u matrix git -C /opt/matrix/orei-matrix-controller checkout -- \
     static/logo.png static/favicon.png static/icons/
 ```
 
+### Note for developers
+
+If you intend to modify the app, fork the repository on GitHub first, then substitute
+your fork's URL when cloning in step 3 of the installation. The `skip-worktree` flag
+is stored locally per clone, so marking your image files in step 4 above will not
+accidentally commit them to your fork — they are simply invisible to git on your Pi
+while still being preserved on disk.
+
 ---
 
 ## Updating
