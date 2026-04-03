@@ -6,8 +6,8 @@ Wants=network-online.target
 [Service]
 User=matrix
 Group=matrix
-WorkingDirectory=/opt/matrix-switch
-ExecStart=/opt/matrix-switch/.venv/bin/gunicorn app:app \
+WorkingDirectory=/opt/matrix/orei-matrix-controller
+ExecStart=/opt/matrix/.venv/bin/gunicorn app:app \
     --bind 0.0.0.0:5000 \
     --workers 4 \
     --timeout 120 \

@@ -200,9 +200,9 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
 
 See **[INSTALL.md](INSTALL.md)** for full step-by-step instructions covering:
 
-1. Creating a dedicated `matrix` system user
-2. Copying files to `/opt/matrix-switch`
-3. Creating the virtual environment and installing dependencies
+1. Creating a dedicated `matrix` system user with home `/opt/matrix`
+2. Cloning the repo to `/opt/matrix/orei-matrix-controller`
+3. Creating the virtual environment at `/opt/matrix/.venv` and installing dependencies
 4. Configuring `config.json`
 5. Creating the log directory
 6. Installing and enabling the systemd service (`matrix-switch.service`)
@@ -211,7 +211,7 @@ See **[INSTALL.md](INSTALL.md)** for full step-by-step instructions covering:
 
 ```bash
 # Install and start
-sudo cp matrix-switch.service /etc/systemd/system/
+sudo cp /opt/matrix/orei-matrix-controller/matrix-switch.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now matrix-switch
 

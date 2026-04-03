@@ -7,43 +7,40 @@ Deployment target: Raspberry Pi 5, Debian Trixie, systemd.
 ## 1. Create the service user
 
 ```bash
-sudo useradd --system --shell /usr/sbin/nologin --create-home --home-dir /opt/matrix-switch matrix
+sudo useradd --system --shell /usr/sbin/nologin --create-home --home-dir /opt/matrix --user-group matrix
 ```
 
 ---
 
-## 2. Copy files to the deployment directory
-
-If you cloned the repo on another machine, copy it across (adjust source path as needed):
+## 2. Create the Python virtual environment
 
 ```bash
-sudo rsync -av --exclude='.venv' --exclude='__pycache__' \
-    /path/to/orei-matrix-controller/ /opt/matrix-switch/
-```
-
-Or clone directly on the Pi (replace with your actual repo URL if using git):
-
-```bash
-sudo git clone <repo-url> /opt/matrix-switch
+sudo python3 -m venv /opt/matrix/.venv
 ```
 
 ---
 
-## 3. Create the Python virtual environment
+## 3. Clone the repository
 
 ```bash
-cd /opt/matrix-switch
-sudo python3 -m venv .venv
-sudo .venv/bin/pip install -r requirements.txt
+sudo git clone https://github.com/brett-kimball/orei-matrix-controller.git /opt/matrix/orei-matrix-controller
 ```
 
 ---
 
-## 4. Configure the application
+## 4. Install Python dependencies
 
 ```bash
-sudo cp /opt/matrix-switch/config.template.json /opt/matrix-switch/config.json
-sudo nano /opt/matrix-switch/config.json
+sudo /opt/matrix/.venv/bin/pip install -r /opt/matrix/orei-matrix-controller/requirements.txt
+```
+
+---
+
+## 5. Configure the application
+
+```bash
+sudo cp /opt/matrix/orei-matrix-controller/config.template.json /opt/matrix/orei-matrix-controller/config.json
+sudo nano /opt/matrix/orei-matrix-controller/config.json
 ```
 
 Edit the values to match your environment:
@@ -65,15 +62,15 @@ Edit the values to match your environment:
 
 ---
 
-## 5. Set correct ownership
+## 6. Set correct ownership
 
 ```bash
-sudo chown -R matrix:matrix /opt/matrix-switch
+sudo chown -R matrix:matrix /opt/matrix
 ```
 
 ---
 
-## 6. Create the log directory
+## 7. Create the log directory
 
 ```bash
 sudo mkdir -p /var/log/matrix-switch
@@ -82,10 +79,10 @@ sudo chown matrix:matrix /var/log/matrix-switch
 
 ---
 
-## 7. Install and enable the systemd service
+## 8. Install and enable the systemd service
 
 ```bash
-sudo cp /opt/matrix-switch/matrix-switch.service /etc/systemd/system/
+sudo cp /opt/matrix/orei-matrix-controller/matrix-switch.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable matrix-switch
 sudo systemctl start matrix-switch
@@ -99,13 +96,13 @@ sudo systemctl status matrix-switch
 
 ---
 
-## 8. Configure log rotation
+## 9. Configure log rotation
 
 Gunicorn writes access and error logs to `/var/log/matrix-switch/`. Install the
 provided logrotate config to rotate them daily, keeping 14 days of compressed history:
 
 ```bash
-sudo cp /opt/matrix-switch/matrix-switch.logrotate /etc/logrotate.d/matrix-switch
+sudo cp /opt/matrix/orei-matrix-controller/matrix-switch.logrotate /etc/logrotate.d/matrix-switch
 ```
 
 You can test it immediately (dry run) with:
@@ -120,7 +117,7 @@ sudo logrotate --debug /etc/logrotate.d/matrix-switch
 
 ---
 
-## 9. Access the web interface
+## 10. Access the web interface
 
 Open a browser and navigate to:
 
@@ -130,7 +127,7 @@ http://<pi-hostname-or-ip>:5000
 
 ---
 
-## 10. Configure nginx reverse proxy (optional)
+## 11. Configure nginx reverse proxy (optional)
 
 Skip this step if you only need LAN access — the app is already reachable on port 5000
 from any device on the local network.
@@ -150,7 +147,7 @@ sudo htpasswd -c /etc/nginx/.htpasswd-matrix-switch <username>
 ### Install the virtual-host config
 
 ```bash
-sudo cp /opt/matrix-switch/matrix-switch.nginx /etc/nginx/sites-available/matrix-switch
+sudo cp /opt/matrix/orei-matrix-controller/matrix-switch.nginx /etc/nginx/sites-available/matrix-switch
 ```
 
 Edit the file and replace `matrix.example.com` with your actual FQDN:
@@ -177,7 +174,7 @@ to HTTPS.
 
 ---
 
-## 11. Name your inputs and outputs on the matrix switch
+## 12. Name your inputs and outputs on the matrix switch
 
 **The app hides any port that still has its factory-default name** (e.g. `input1`, `hdmi output3`). Until you rename ports on the matrix device itself, the web UI will show an empty grid.
 
@@ -216,7 +213,7 @@ Click **↺ Refresh Config** in the app (top-right of the header) to pull the ne
 | View access log | `sudo tail -f /var/log/matrix-switch/access.log` |
 | Restart the service | `sudo systemctl restart matrix-switch` |
 | Stop the service | `sudo systemctl stop matrix-switch` |
-| Edit config | `sudo nano /opt/matrix-switch/config.json && sudo systemctl restart matrix-switch` |
+| Edit config | `sudo nano /opt/matrix/orei-matrix-controller/config.json && sudo systemctl restart matrix-switch` |
 
 ---
 
@@ -237,12 +234,13 @@ generic matrix-switch graphic. Replace it with your own image to personalise the
 
 2. Install Pillow if not already present:
    ```bash
-   .venv/bin/pip install pillow
+   /opt/matrix/.venv/bin/pip install pillow
    ```
 
-3. Regenerate all icon sizes:
+3. Regenerate all icon sizes from the repo directory:
    ```bash
-   .venv/bin/python3 - << 'EOF'
+   cd /opt/matrix/orei-matrix-controller
+   /opt/matrix/.venv/bin/python3 - << 'EOF'
    from PIL import Image
    import os
    img = Image.open("static/logo.png").convert("RGBA")
@@ -288,12 +286,9 @@ git checkout -- static/logo.png static/favicon.png static/icons/
 ## Updating
 
 ```bash
-# Copy new files
-sudo rsync -av --exclude='.venv' --exclude='__pycache__' --exclude='config.json' \
-    /path/to/orei-matrix-controller/ /opt/matrix-switch/
-
-# Fix ownership and restart
-sudo chown -R matrix:matrix /opt/matrix-switch
+cd /opt/matrix/orei-matrix-controller
+sudo git pull
+sudo /opt/matrix/.venv/bin/pip install -r requirements.txt
 sudo systemctl restart matrix-switch
 ```
 
