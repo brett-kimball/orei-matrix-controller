@@ -239,7 +239,10 @@ generic matrix-switch graphic. Replace it with your own image to personalise the
 
 ### Steps
 
-1. Copy your image to `static/logo.png`.
+1. Copy your image into place:
+   ```bash
+   sudo -u matrix cp /path/to/your/image.png /opt/matrix/orei-matrix-controller/static/logo.png
+   ```
 
 2. Install Pillow if not already present:
    ```bash
@@ -312,7 +315,8 @@ sudo systemctl stop matrix-switch
 sudo systemctl disable matrix-switch
 sudo rm /etc/systemd/system/matrix-switch.service
 sudo systemctl daemon-reload
-sudo rm -rf /opt/matrix-switch
+sudo rm -rf /opt/matrix
 sudo rm -rf /var/log/matrix-switch
+sudo rm -f /etc/logrotate.d/matrix-switch
 sudo userdel matrix
 ```
