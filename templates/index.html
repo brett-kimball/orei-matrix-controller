@@ -300,13 +300,16 @@
       margin-bottom: 12px;
     }
 
-    /* Remote button on card */
+    /* Remote button beside dropdown */
+    .input-row { display: flex; gap: 8px; align-items: center; }
+    .input-row .source-wrap { flex: 1; }
     .btn-cec.cec-remote {
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text-muted);
       padding: 4px 7px;
       line-height: 1;
+      flex-shrink: 0;
     }
     .btn-cec.cec-remote:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
 
@@ -432,15 +435,6 @@
       <div class="card-header-right">
         {% if not out.is_default %}
         <div class="cec-btns" id="cec-btns-{{ out.number }}" style="display:none">
-          <button class="btn-cec cec-remote" id="rmt-btn-{{ out.number }}" onclick="openRemote({{ out.number }})" title="Input Remote" style="display:none">
-            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="15" viewBox="0 0 10 15" fill="currentColor">
-              <rect x="1" y="0.5" width="8" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
-              <circle cx="5" cy="3.5" r="1.2"/>
-              <line x1="2.5" y1="6" x2="7.5" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-              <circle cx="3" cy="9" r="0.75"/><circle cx="5" cy="9" r="0.75"/><circle cx="7" cy="9" r="0.75"/>
-              <circle cx="3" cy="11.5" r="0.75"/><circle cx="5" cy="11.5" r="0.75"/><circle cx="7" cy="11.5" r="0.75"/>
-            </svg>
-          </button>
           <button class="btn-cec cec-input" id="inp-btn-{{ out.number }}"
             onclick="cecPower({{ out.number }}, 2, this)"
             title="CEC switch to input">
@@ -463,15 +457,28 @@
         <div class="signal-dot {% if out.connected %}active{% endif %}" id="sig-{{ out.number }}" title="{% if out.connected %}{{ out.connection_type | upper }} signal present{% else %}No signal{% endif %}"></div>
       </div>
     </div>
-    <div class="source-wrap">
-      <select id="sel-{{ out.number }}" onchange="switchSource({{ out.number }}, this.value)" {% if not state.power %}disabled{% endif %}>
-        {% for inp in state.inputs %}
-        <option value="{{ inp.number }}" {% if out.source == inp.number %}selected{% endif %}{% if inp.is_default %} hidden{% endif %}>
-          {{ inp.name }}
-        </option>
-        {% endfor %}
-      </select>
-      <span class="select-arrow">▼</span>
+    <div class="input-row">
+      <div class="source-wrap">
+        <select id="sel-{{ out.number }}" onchange="switchSource({{ out.number }}, this.value)" {% if not state.power %}disabled{% endif %}>
+          {% for inp in state.inputs %}
+          <option value="{{ inp.number }}" {% if out.source == inp.number %}selected{% endif %}{% if inp.is_default %} hidden{% endif %}>
+            {{ inp.name }}
+          </option>
+          {% endfor %}
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+      {% if not out.is_default %}
+      <button class="btn-cec cec-remote" id="rmt-btn-{{ out.number }}" onclick="openRemote({{ out.number }})" title="Input Remote" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="15" viewBox="0 0 10 15" fill="currentColor">
+          <rect x="1" y="0.5" width="8" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <circle cx="5" cy="3.5" r="1.2"/>
+          <line x1="2.5" y1="6" x2="7.5" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <circle cx="3" cy="9" r="0.75"/><circle cx="5" cy="9" r="0.75"/><circle cx="7" cy="9" r="0.75"/>
+          <circle cx="3" cy="11.5" r="0.75"/><circle cx="5" cy="11.5" r="0.75"/><circle cx="7" cy="11.5" r="0.75"/>
+        </svg>
+      </button>
+      {% endif %}
     </div>
   </div>
   {% endfor %}
