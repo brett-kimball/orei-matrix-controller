@@ -53,6 +53,8 @@ sudo -u matrix /opt/matrix/.venv/bin/pip install -r /opt/matrix/orei-matrix-cont
 
 ## 5. Configure the application
 
+> All `vi` commands in this guide can be substituted with your preferred editor (e.g. `nano`, `vim`, `emacs`).
+
 ```bash
 sudo -u matrix cp /opt/matrix/orei-matrix-controller/config.template.json /opt/matrix/orei-matrix-controller/config.json
 sudo vi /opt/matrix/orei-matrix-controller/config.json
