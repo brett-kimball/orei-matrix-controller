@@ -246,22 +246,28 @@ class MatrixClient:
                     logger.exception("on_state_change callback error")
             return True
 
-    def set_cec_power(self, output: int, connection_type: str, on: bool) -> bool:
-        """Send CEC power on/off to a specific output via the matrix switch.
+    # Maps API state values to CEC index: 1=On→0, 0=Off→1, 2=Input→5
+    _CEC_STATE_INDEX = {1: 0, 0: 1, 2: 5}
+    _CEC_STATE_LABEL = {1: "ON", 0: "STANDBY", 2: "INPUT"}
+
+    def set_cec_power(self, output: int, connection_type: str, state: int) -> bool:
+        """Send CEC power on/off/input to a specific output via the matrix switch.
 
         output:          1-based output port number
         connection_type: 'hdmi' or 'hdbt'
-        on:              True = power on, False = standby
+        state:           1=On, 0=Off, 2=Input/Source
 
         Port array layout (16 elements):
           indices 0-7  = HDMI outputs 1-8
           indices 8-15 = HDBaseT outputs 1-8
-        CEC index: 1 = power on, 2 = standby (output object=1)
+        CEC output indices (object=1, language=0): 0=On, 1=Off, 5=Input
         """
         if not (1 <= output <= self.num_outputs):
             raise ValueError(f"Output {output} out of range")
         if connection_type not in ("hdmi", "hdbt"):
             raise ValueError(f"connection_type must be 'hdmi' or 'hdbt'")
+        if state not in self._CEC_STATE_INDEX:
+            raise ValueError(f"state must be 0, 1, or 2")
 
         port = [0] * 16
         if connection_type == "hdmi":
@@ -271,11 +277,12 @@ class MatrixClient:
 
         resp = self._http_post({
             "comhead": "cec command",
+            "language": 0,
             "object": 1,       # 1 = output
             "port": port,
-            "index": 1 if on else 2,
+            "index": self._CEC_STATE_INDEX[state],  # 0=On, 1=Off, 5=Input
         })
-        action = "ON" if on else "STANDBY"
+        action = self._CEC_STATE_LABEL[state]
         if resp and resp.get("result") == 1:
             logger.info("CEC %s sent to output %d (%s)", action, output, connection_type)
             return True
@@ -307,6 +314,7 @@ class MatrixClient:
 
         resp = self._http_post({
             "comhead": "cec command",
+            "language": 0,
             "object": 0,       # 0 = input
             "port": port,
             "index": key_index,
@@ -441,7 +449,7 @@ class MatrixClient:
             if source_is != "any" and output["source"] not in source_is:
                 continue
             try:
-                self.set_cec_power(output["number"], output["connection_type"], on)
+                self.set_cec_power(output["number"], output["connection_type"], 1 if on else 0)
             except Exception:
                 logger.exception("Schedule CEC error for output %d", output["number"])
 

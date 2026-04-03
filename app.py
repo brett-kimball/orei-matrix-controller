@@ -139,8 +139,9 @@ def api_refresh_config():
 
 @app.route("/api/cec", methods=["POST"])
 def api_cec():
-    """Send a CEC power command to a specific output.
-    Body: {"output": N, "connection_type": "hdmi"|"hdbt", "state": 0|1}
+    """Send a CEC power/input command to a specific output.
+    Body: {"output": N, "connection_type": "hdmi"|"hdbt", "state": 0|1|2}
+    state: 1=On, 0=Off, 2=Input/Source
     """
     data = request.get_json(force=True, silent=True) or {}
     output = data.get("output")
@@ -150,9 +151,9 @@ def api_cec():
         return jsonify({"error": "invalid output"}), 400
     if connection_type not in ("hdmi", "hdbt"):
         return jsonify({"error": "connection_type must be 'hdmi' or 'hdbt'"}), 400
-    if state not in (0, 1, True, False):
-        return jsonify({"error": "state must be 0 or 1"}), 400
-    ok = matrix.set_cec_power(output, connection_type, bool(state))
+    if state not in (0, 1, 2):
+        return jsonify({"error": "state must be 0, 1, or 2"}), 400
+    ok = matrix.set_cec_power(output, connection_type, state)
     if ok:
         return jsonify({"ok": True})
     return jsonify({"error": "CEC command failed or no response from device"}), 502
@@ -177,6 +178,20 @@ def api_cec_key():
     if ok:
         return jsonify({"ok": True})
     return jsonify({"error": "CEC key command failed or no response from device"}), 502
+
+
+@app.route("/api/cec-raw", methods=["POST"])
+def api_cec_raw():
+    """Send an arbitrary CEC payload directly to the matrix switch for diagnostics.
+    Body: any dict — forwarded verbatim with comhead='cec command' added if absent.
+    Only available in debug/development use; do not expose publicly.
+    """
+    data = request.get_json(force=True, silent=True) or {}
+    if "comhead" not in data:
+        data["comhead"] = "cec command"
+    logger.info("CEC raw probe: %s", data)
+    resp = matrix._http_post(data)
+    return jsonify({"sent": data, "response": resp})
 
 
 @app.route("/api/events")

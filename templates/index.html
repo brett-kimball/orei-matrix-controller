@@ -159,10 +159,18 @@
       letter-spacing: 0.03em;
     }
     .btn-cec:disabled { opacity: 0.35; cursor: not-allowed; }
-    .btn-cec.cec-on  { background: var(--success); color: #fff; }
+    .btn-cec.cec-on  { background: var(--success); color: #fff; padding: 3px 8px; }
     .btn-cec.cec-on:hover:not(:disabled)  { background: #5dc990; }
-    .btn-cec.cec-off { background: var(--danger);  color: #fff; }
+    .btn-cec.cec-off { background: var(--danger);  color: #fff; padding: 3px 8px; }
     .btn-cec.cec-off:hover:not(:disabled) { background: var(--danger-hover); }
+    .btn-cec.cec-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 7px;
+      line-height: 1;
+    }
+    .btn-cec.cec-input:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
     .cec-btns { display: flex; gap: 6px; align-items: center; }
 
     /* Grid */
@@ -433,11 +441,22 @@
               <circle cx="3" cy="11.5" r="0.75"/><circle cx="5" cy="11.5" r="0.75"/><circle cx="7" cy="11.5" r="0.75"/>
             </svg>
           </button>
+          <button class="btn-cec cec-input" id="inp-btn-{{ out.number }}"
+            onclick="cecPower({{ out.number }}, 2, this)"
+            title="CEC switch to input">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="10" height="7" rx="1.2"/>
+              <line x1="4" y1="9" x2="8" y2="9"/>
+              <line x1="6" y1="9" x2="6" y2="11"/>
+              <line x1="7.5" y1="5" x2="5" y2="5"/>
+              <polyline points="6.5,3.5 8.5,5 6.5,6.5"/>
+            </svg>
+          </button>
           <button class="btn-cec cec-on"
-            onclick="cecPower({{ out.number }}, true, this)"
+            onclick="cecPower({{ out.number }}, 1, this)"
             title="CEC power on">⏻ On</button>
           <button class="btn-cec cec-off"
-            onclick="cecPower({{ out.number }}, false, this)"
+            onclick="cecPower({{ out.number }}, 0, this)"
             title="CEC standby">⏻ Off</button>
         </div>
         {% endif %}
@@ -629,7 +648,8 @@
   }
 
   // ── CEC power ──────────────────────────────────────────────────────────────
-  async function cecPower(output, on, btn) {
+  // state: 1=On, 0=Off, 2=Input/Source
+  async function cecPower(output, state, btn) {
     const outState = _state && _state.outputs.find(o => o.number === output);
     const connectionType = outState && outState.connection_type;
     if (!connectionType) {
@@ -641,13 +661,14 @@
       const resp = await fetch('/api/cec', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({output, connection_type: connectionType, state: on ? 1 : 0})
+        body: JSON.stringify({output, connection_type: connectionType, state})
       });
       const data = await resp.json();
       if (!resp.ok || data.error) {
         showToast('CEC failed: ' + (data.error || resp.status), 'error');
       } else {
-        showToast(`CEC ${on ? 'power on' : 'standby'} sent to output ${output}`, 'ok');
+        const labels = {1: 'power on', 0: 'standby', 2: 'switch to input'};
+        showToast(`CEC ${labels[state] ?? state} sent to output ${output}`, 'ok');
       }
     } catch(err) {
       showToast('Network error: ' + err.message, 'error');
