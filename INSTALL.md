@@ -239,9 +239,12 @@ generic matrix-switch graphic. Replace it with your own image to personalise the
 
 ### Steps
 
-1. Copy your image into place:
+1. Copy your image into place.  Because `/home/<you>` is readable only by your
+   own user, stage the file through `/tmp` first:
    ```bash
-   sudo -u matrix cp /path/to/your/image.png /opt/matrix/orei-matrix-controller/static/logo.png
+   cp /path/to/your/image.png /tmp/logo.png
+   sudo -u matrix cp /tmp/logo.png /opt/matrix/orei-matrix-controller/static/logo.png
+   rm /tmp/logo.png
    ```
 
 2. Install Pillow if not already present:
