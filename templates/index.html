@@ -415,7 +415,7 @@
       <span class="badge-dot"></span>
       <span id="device-label">Offline</span>
     </div>
-    <button id="btn-power" class="btn-power-on" disabled>On</button>
+    <button id="btn-power" class="btn-power-on" disabled><i class="fa-solid fa-power-off"></i></button>
   </div>
 </header>
 
@@ -522,7 +522,8 @@
     const btn = document.getElementById('btn-power');
     btn.disabled = false;
     btn.className = on ? 'btn-power-on' : 'btn-power-off';
-    btn.textContent = on ? 'On' : 'Standby';
+    btn.innerHTML = '<i class="fa-solid fa-power-off"></i>';
+    btn.title = on ? 'Standby' : 'Power On';
     btn.onclick = () => setPower(!on);
 
     const overlay = document.getElementById('standby-overlay');
