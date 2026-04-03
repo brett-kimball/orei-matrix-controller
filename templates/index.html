@@ -450,7 +450,7 @@
             title="CEC power on">⏻</button>
           <button class="btn-cec cec-off"
             onclick="cecPower({{ out.number }}, 0, this)"
-            title="CEC standby"><i class="fa-solid fa-circle-notch"></i></button>
+            title="CEC standby"><i class="fa-solid fa-circle-xmark"></i></button>
         </div>
         {% endif %}
         <div class="signal-dot {% if out.connected %}active{% endif %}" id="sig-{{ out.number }}" title="{% if out.connected %}{{ out.connection_type | upper }} signal present{% else %}No signal{% endif %}"></div>
