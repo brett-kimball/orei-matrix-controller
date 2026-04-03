@@ -62,6 +62,13 @@
       "source": 1
     },
     {
+      "_comment": "Apply preset 1 ('Default') every morning at 07:00 — restores a saved routing configuration",
+      "time": "07:00",
+      "days": "all",
+      "action": "preset",
+      "index": 1
+    },
+    {
       "_comment": "Send CEC power-on to source devices on all named inputs at 07:00",
       "time": "07:00",
       "days": "all",
