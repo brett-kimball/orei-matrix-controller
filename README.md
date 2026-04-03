@@ -150,7 +150,7 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
     {
       "time": "02:30",             // HH:MM (24-hour, local time)
       "days": "all",               // "all" or an array like ["mon","tue","wed","thu","fri"]
-      "action": "off",             // "on", "off", "matrix_on", "matrix_standby", "switch", "preset", "source_on", or "source_off"
+      "action": "off",             // "on", "off", "cec_input", "matrix_on", "matrix_standby", "switch", "preset", "source_on", or "source_off"
       "outputs": "all",            // "all" or an array of output numbers, e.g. [1,3,5]
       "source_is": "any"           // "any" or an array of input numbers, e.g. [2,3]
     },
@@ -193,7 +193,7 @@ Copy `config.template.json` to `config.json` and edit it. The file is gitignored
 ### Schedule notes
 
 * The `schedule` key is optional — omit it (or set it to `[]`) to disable scheduling entirely.
-* **Actions:** `"on"` / `"off"` send CEC commands to outputs (displays); `"source_on"` / `"source_off"` send CEC power commands to source devices on inputs; `"matrix_on"` and `"matrix_standby"` control power on the matrix switch itself; `"switch"` routes outputs to a different source input; `"preset"` applies a saved routing preset. The `outputs`, `source_is` fields are ignored for matrix power and preset actions.
+* **Actions:** `"on"` / `"off"` send CEC power on/standby to outputs (displays); `"cec_input"` sends a CEC Active Source command telling each display to switch to the HDMI/HDBaseT port the matrix switch is connected to; `"source_on"` / `"source_off"` send CEC power commands to source devices on inputs; `"matrix_on"` and `"matrix_standby"` control power on the matrix switch itself; `"switch"` routes outputs to a different source input; `"preset"` applies a saved routing preset. The `outputs`, `source_is` fields are ignored for matrix power and preset actions.
 * **Ordering matters:** the matrix switch must be powered on before CEC commands can be relayed to displays. Schedule `"matrix_on"` a few minutes before any `"on"` CEC event to give the switch time to fully boot (e.g. `matrix_on` at 06:55, CEC `on` at 07:00).
 * **Multiple events at the same time** are supported. All matching events fire in the order they appear in the `schedule` array. If ordering between same-time events matters (e.g. `switch` before `on`), place them in that order in the list. If a guaranteed delay is needed between actions, use times one minute apart.
 * Only outputs that have a **custom name** (i.e. not a default name like `"output3"`) receive CEC commands, because the connection type (`hdmi` or `hdbt`) is inferred from the naming convention.

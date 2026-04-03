@@ -383,6 +383,14 @@ class MatrixClient:
                     elif action == "matrix_standby":
                         logger.info("Schedule event %d fired: matrix power STANDBY", i)
                         self.set_power(False)
+                    elif action == "cec_input":
+                        outputs_cfg = event.get("outputs", "all")
+                        source_is   = event.get("source_is", "any")
+                        logger.info(
+                            "Schedule event %d fired: CEC input (active source), outputs=%s, source_is=%s",
+                            i, outputs_cfg, source_is,
+                        )
+                        self._fire_schedule_cec_input(outputs_cfg, source_is)
                     elif action == "preset":
                         preset_index = event.get("index")
                         if preset_index is None:
@@ -475,6 +483,20 @@ class MatrixClient:
                 self.set_cec_power(output["number"], output["connection_type"], 1 if on else 0)
             except Exception:
                 logger.exception("Schedule CEC error for output %d", output["number"])
+
+    def _fire_schedule_cec_input(self, outputs_config, source_is) -> None:
+        """Send a CEC Active Source (switch to input) command to each applicable output."""
+        for output in self.get_state()["outputs"]:
+            if output["connection_type"] is None:
+                continue
+            if outputs_config != "all" and output["number"] not in outputs_config:
+                continue
+            if source_is != "any" and output["source"] not in source_is:
+                continue
+            try:
+                self.set_cec_power(output["number"], output["connection_type"], 2)
+            except Exception:
+                logger.exception("Schedule CEC input error for output %d", output["number"])
 
     # ---------------------------------------------------------------- #
     # Background poll loop (HTTP safety-net)

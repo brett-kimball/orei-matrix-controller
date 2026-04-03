@@ -62,6 +62,14 @@
       "source": 1
     },
     {
+      "_comment": "Tell all displays to switch to the matrix switch's HDMI port at 07:00 (useful when a TV wakes on a different input)",
+      "time": "07:00",
+      "days": "all",
+      "action": "cec_input",
+      "outputs": "all",
+      "source_is": "any"
+    },
+    {
       "_comment": "Apply preset 1 ('Default') every morning at 07:00 — restores a saved routing configuration",
       "time": "07:00",
       "days": "all",
