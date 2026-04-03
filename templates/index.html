@@ -159,15 +159,14 @@
       letter-spacing: 0.03em;
     }
     .btn-cec:disabled { opacity: 0.35; cursor: not-allowed; }
-    .btn-cec.cec-on  { background: var(--success); color: #fff; padding: 3px 8px; }
+    .btn-cec.cec-on  { background: var(--success); color: #fff; }
     .btn-cec.cec-on:hover:not(:disabled)  { background: #5dc990; }
-    .btn-cec.cec-off { background: var(--danger);  color: #fff; padding: 3px 8px; }
+    .btn-cec.cec-off { background: var(--danger);  color: #fff; }
     .btn-cec.cec-off:hover:not(:disabled) { background: var(--danger-hover); }
     .btn-cec.cec-input {
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text-muted);
-      padding: 4px 7px;
       line-height: 1;
     }
     .btn-cec.cec-input:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
@@ -448,10 +447,10 @@
           </button>
           <button class="btn-cec cec-on"
             onclick="cecPower({{ out.number }}, 1, this)"
-            title="CEC power on">⏻ On</button>
+            title="CEC power on">⏻</button>
           <button class="btn-cec cec-off"
             onclick="cecPower({{ out.number }}, 0, this)"
-            title="CEC standby">⏻ Off</button>
+            title="CEC standby">⏻</button>
         </div>
         {% endif %}
         <div class="signal-dot {% if out.connected %}active{% endif %}" id="sig-{{ out.number }}" title="{% if out.connected %}{{ out.connection_type | upper }} signal present{% else %}No signal{% endif %}"></div>
