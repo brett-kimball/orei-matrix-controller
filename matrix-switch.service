@@ -13,10 +13,12 @@ ExecStart=/opt/matrix/.venv/bin/gunicorn app:app \
     --worker-class gthread \
     --threads 8 \
     --timeout 120 \
+    --graceful-timeout 5 \
     --access-logfile /var/log/matrix-switch/access.log \
     --error-logfile /var/log/matrix-switch/error.log
 Restart=on-failure
 RestartSec=10
+TimeoutStopSec=15
 StandardOutput=journal
 StandardError=journal
 
